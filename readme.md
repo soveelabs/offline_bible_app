@@ -7,4 +7,4 @@
 * node server.js
 
 #### Steps to setup
-* [https://github.com/soveelabs/offline_bible_app/wiki/Test-Offline-Bible-App-on-your-local](Show me!)
+* [Show me!](https://github.com/soveelabs/offline_bible_app/wiki/Test-Offline-Bible-App-on-your-local)
