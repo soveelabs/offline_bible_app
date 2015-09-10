@@ -8,6 +8,80 @@ var Bible = require('../models/bible');
 
 
 // Routes
+
+// CREATE Gateway Language Bibles
+
+
+
+
+
+
+exports.create = function(req, res) {
+
+
+  // Bible info from request body
+  
+  var bibleId = req.body.bibleId;
+  var version = req.body.version;
+  var langCode = req.body.version;
+  var bibleUrl = req.body.version;
+
+
+  Bible.findOne({
+    BibleId: {
+      $regex: new RegExp(BibleId, "i")
+    }
+  }, function(err, bib) { // Using RegEx - search is case insensitive
+    if (!err && !bib) {
+
+
+      var newBible = new Bible();
+
+
+
+      newBible.bibleId = bibleId
+      newBible.version = version
+      newBible.langCode = langCode
+      newBible.bibleUrl = bibleUrl
+      
+
+
+
+      newBible.save(function(err) {
+
+        if (!err) {
+          res.status(201).json({
+            message: "Bible created with bibleId: " + newBible.BibleId
+          });
+        } else {
+          res.status(500).json({
+            message: "Could not create Bible. Error: " + err
+          });
+        }
+
+      });
+
+    } else if (!err) {
+
+      // User is trying to create a Bible with a BibleId that already exists.
+      res.status(403).json({
+        message: "Bible with that BibleId already exists, please update instead of create or create a new Bible with a different Bible Id."
+      });
+
+    } else {
+      res.status(500).json({
+        message: err
+      });
+    }
+  });
+
+}
+
+
+
+
+// LIST Gateway Language Bibles
+
 router.route('/bibles').get(function(req, res) {
   Bible.find(function(err, bibles) {
     if (err) {
