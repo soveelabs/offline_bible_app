@@ -7,11 +7,15 @@ var router = express.Router();
 var Bible = require('../models/bible');
 
 
-
 // Routes
-Bible.methods(['get', 'put', 'post', 'delete']);
-
-Bible.register(router, '/bibles');
+router.route('/bibles').get(function(req, res) {
+  Bible.find(function(err, bibles) {
+    if (err) {
+      return res.send(err);
+    }
+    res.json(movies);
+  });
+});
 
 
 
