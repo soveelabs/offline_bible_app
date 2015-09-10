@@ -1,7 +1,5 @@
-
 // Dependencies
-var restful = require('node-restful');
-var mongoose = restful.mongoose;
+var mongoose = require('mongoose');
 
 // Schema
 var bibleSchema = new mongoose.Schema({
@@ -12,4 +10,4 @@ var bibleSchema = new mongoose.Schema({
 });
 
 // Return model
-module.exports = restful.model('Bibles', bibleSchema);
+module.exports = mongoose.model('Bibles', bibleSchema);
