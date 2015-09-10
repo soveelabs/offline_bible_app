@@ -10,4 +10,4 @@ var bibleSchema = new mongoose.Schema({
 });
 
 // Return model
-module.exports = mongoose.model('Bibles', bibleSchema);
+module.exports = mongoose.model('Bible', bibleSchema);

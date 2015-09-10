@@ -10,55 +10,36 @@ var Bible = require('../models/bible');
 // Routes
 
 // CREATE Gateway Language Bibles
-
-
-
-
-
-
-exports.create = function(req, res) {
-
+router.route('/bibles').post(function(req, res){
 
   // Bible info from request body
-  
   var bibleId = req.body.bibleId;
   var version = req.body.version;
-  var langCode = req.body.version;
-  var bibleUrl = req.body.version;
-
+  var langCode = req.body.langCode;
+  var bibleUrl = req.body.bibleUrl;
 
   Bible.findOne({
-    BibleId: {
-      $regex: new RegExp(BibleId, "i")
+    bibleId: {
+      $regex: new RegExp(bibleId, "i")
     }
   }, function(err, bib) { // Using RegEx - search is case insensitive
     if (!err && !bib) {
-
-
       var newBible = new Bible();
 
-
-
-      newBible.bibleId = bibleId
-      newBible.version = version
-      newBible.langCode = langCode
-      newBible.bibleUrl = bibleUrl
-      
-
-
-
+      newBible.bibleId = bibleId;
+      newBible.version = version;
+      newBible.langCode = langCode;
+      newBible.bibleUrl = bibleUrl;
       newBible.save(function(err) {
-
         if (!err) {
           res.status(201).json({
-            message: "Bible created with bibleId: " + newBible.BibleId
+            message: "Bible created with bibleId: " + newBible.bibleId
           });
         } else {
           res.status(500).json({
             message: "Could not create Bible. Error: " + err
           });
         }
-
       });
 
     } else if (!err) {
@@ -75,13 +56,9 @@ exports.create = function(req, res) {
     }
   });
 
-}
-
-
-
+});
 
 // LIST Gateway Language Bibles
-
 router.route('/bibles').get(function(req, res) {
   Bible.find(function(err, bibles) {
     if (err) {
@@ -90,8 +67,6 @@ router.route('/bibles').get(function(req, res) {
     res.json(bibles);
   });
 });
-
-
 
 // Return router
 module.exports = router;
