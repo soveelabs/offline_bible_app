@@ -1,4 +1,4 @@
-
+ 
 // Dependencies
 var express = require('express');
 var router = express.Router();
@@ -12,28 +12,22 @@ var Bible = require('../models/bible');
 // CREATE Gateway Language Bibles
 router.route('/bibles').post(function(req, res){
 
-  // Bible info from request body
-  var bibleId = req.body.bibleId;
-  var version = req.body.version;
-  var langCode = req.body.langCode;
-  var bibleUrl = req.body.bibleUrl;
-
   Bible.findOne({
     bibleId: {
-      $regex: new RegExp(bibleId, "i")
+      $regex: new RegExp(req.body.bibleId, "i")
     }
-  }, function(err, bib) { // Using RegEx - search is case insensitive
-    if (!err && !bib) {
+  }, function(err, bible) { // Using RegEx - search is case insensitive
+    if (!err && !bible) {
       var newBible = new Bible();
 
-      newBible.bibleId = bibleId;
-      newBible.version = version;
-      newBible.langCode = langCode;
-      newBible.bibleUrl = bibleUrl;
+      newBible.bibleId = req.body.bibleId;
+      newBible.version = req.body.version;
+      newBible.langCode = req.body.langCode;
+      newBible.bibleUrl = req.body.bibleUrl;
       newBible.save(function(err) {
         if (!err) {
           res.status(201).json({
-            message: "Bible created with bibleId: " + newBible.bibleId
+            message: "Bible created with bibleId: " + req.body.bibleId
           });
         } else {
           res.status(500).json({
@@ -46,7 +40,7 @@ router.route('/bibles').post(function(req, res){
 
       // User is trying to create a Bible with a BibleId that already exists.
       res.status(403).json({
-        message: "Bible with that BibleId already exists, please update instead of create or create a new Bible with a different Bible Id."
+        message: "Cannot create Bible with the same Bible ID."
       });
 
     } else {
@@ -69,26 +63,19 @@ router.route('/bibles').get(function(req, res) {
 });
 
 // UPDATE Gateway Language Bibles
-router.route('/bibles').post( function(req, res) {
 
-  var id = req.body.id;
+router.route('/bibles/:id').put( function(req, res) {
   var bibleId = req.body.bibleId;
-  var version = req.body.version;
-  var langCode = req.body.langCode;
-  var bibleUrl = req.body.bibleUrl;
+    
+  Bible.findOne({'bibleId':bibleId}, function(err, bible) {
+    if (!err && bible) {
+      bible.bibleId = bibleId;
+      bible.version = req.body.version;
+      bible.bibleId = req.body.bibleId;
+      bible.bibleUrl = req.body.bibleUrl;
+      bible.langCode = req.body.langCode;
 
-
-  Bible.findById(id, function(err, bib) {
-    if (!err && bib) {
-      bib.bibleId = bibleId;
-      bib.version = version;
-      bib.bibleId = bibleId;
-      bib.bibleUrl = bibleUrl;
-
-
-
-
-      bib.save(function(err) {
+      bible.save(function(err) {
         if (!err) {
           res.status(200).json({
             message: "Bible updated: " + bibleId
