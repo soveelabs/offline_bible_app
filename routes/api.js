@@ -68,5 +68,51 @@ router.route('/bibles').get(function(req, res) {
   });
 });
 
+// UPDATE Gateway Language Bibles
+router.route('/bibles').post( function(req, res) {
+
+  var id = req.body.id;
+  var bibleId = req.body.bibleId;
+  var version = req.body.version;
+  var langCode = req.body.langCode;
+  var bibleUrl = req.body.bibleUrl;
+
+
+  Bible.findById(id, function(err, bib) {
+    if (!err && bib) {
+      bib.bibleId = bibleId;
+      bib.version = version;
+      bib.bibleId = bibleId;
+      bib.bibleUrl = bibleUrl;
+
+
+
+
+      bib.save(function(err) {
+        if (!err) {
+          res.status(200).json({
+            message: "Bible updated: " + bibleId
+          });
+        } else {
+          res.status(500).json({
+            message: "Could not update bible. " + err
+          });
+        }
+      });
+    } else if (!err) {
+      res.status(404).json({
+        message: "Could not find bible."
+      });
+    } else {
+      res.status(500).json({
+        message: "Could not update bible." + err
+      });
+    }
+  });
+});
+
+
+
+
 // Return router
 module.exports = router;

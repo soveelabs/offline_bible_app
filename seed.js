@@ -2,7 +2,7 @@ var models = require('./models');
 
 models.User.create({
   email: 'binu.alexander@icloud.com',
-  hashed_password: '$2a$10$z9Xvrk/1SIAnAnrXRSSLJ.rCWqWqhm2sKUoXYUmcOuyCGmN.bIMc6 ',
+  hashed_password: '$2a$10$JMVRZeyqHDDlETjR14sOsO17yk/7iDUBXJzgKVuyt8ps25tIXYPWG',
   password_reset_token: 'resetpass'
 }, function() {
   models.OAuthClientsModel.create({
