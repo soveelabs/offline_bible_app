@@ -3,11 +3,12 @@
 var express = require('express');
 var router = express.Router();
 
+
 // Models
 var Bible = require('../models/bible');
 
 
-// Routes
+// Gateway Language Bible Routes
 
 // CREATE Gateway Language Bibles
 router.route('/bibles').post(function(req, res){
