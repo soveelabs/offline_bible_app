@@ -1,20 +1,14 @@
 // Dependencies
 var mongoose = require('mongoose');
+var Book = require('./book.js');
 
 // Schema
-var booksSchema = new Schema({
-                                        bookName: String,
-                                        
-                                    });
-
-
-
 var bibleSchema = new mongoose.Schema({
     bibleId: String,
     version: String,
     langCode: String,
     bibleUrl: String,
-    books: [booksSchema],
+    books: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Book' }]
 });
 
 // Return model
