@@ -4,8 +4,10 @@ var express = require('express');
 var router = express.Router();
 
 
+
 // Models
 var Bible = require('../models/bible');
+var Book =  require('../models/book');
 
 
 // Gateway Language Bible Routes
@@ -99,6 +101,49 @@ router.route('/bibles/:id').put( function(req, res) {
   });
 });
 
+
+// Bible Book Routes
+
+// CREATE  Bible Books
+router.route('/bibles/:bible_id/books').post(function(req, res){
+
+  Book.findOne({
+    bookName: {
+      $regex: new RegExp(req.body.bookName, "i")
+    }
+  }, function(err, book) { // Using RegEx - search is case insensitive
+    if (!err && !book) {
+      var newBook = new Book();
+
+      newBook.bookName = req.body.bookName;
+     
+      newBook.save(function(err) {
+        if (!err) {
+          res.status(201).json({
+            message: "Book created with bookName: " + req.body.bookName
+          });
+        } else {
+          res.status(500).json({
+            message: "Could not create Book. Error: " + err
+          });
+        }
+      });
+
+    } else if (!err) {
+
+      // User is trying to create a Book with a BibleId that already exists.
+      res.status(403).json({
+        message: "Cannot create Book with the same Book Name."
+      });
+
+    } else {
+      res.status(500).json({
+        message: err
+      });
+    }
+  });
+
+});
 
 
 
