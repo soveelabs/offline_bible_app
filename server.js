@@ -28,7 +28,7 @@ app.use(app.oauth.errorHandler());
 
 
 // Routes
-app.use('/api', app.oauth.authorise(), require('./routes/api'));
+app.use('/api', app.oauth.authorise(), require('./routes/books'));
 
 
  // Auth for sovee
