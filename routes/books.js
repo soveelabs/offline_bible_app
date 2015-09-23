@@ -76,34 +76,56 @@ router.route('/bibles/:bible_id/books').get(function(req, res) {
 
 // UPDATE Books
 router.route('/bibles/:bible_id/books').put( function(req, res) {
-    var bibleId = req.params.bible_id;
-    Bible.findOne({'bibleId':bibleId}, function(err, book) {
-        if (!err && book) {
-            book.bibleId = bibleId;
-            book.bookName = req.body.bookName;
-            book.chapters = req.body.chapters;
 
-            book.save(function(err) {
-                if (!err) {
-                    res.status(200).json({
-                        message: "Book updated: " + bibleId
+    console.log(req.body); // Check the request body on console
+
+    Book.findOne({
+        bookName: {
+            $regex: new RegExp(req.body.bookName, "i")
+        }
+    }, function(err, book) { 
+            if (!err && !book) {
+                var bibleId = req.params.bible_id;
+                Book.findOne({'bibleId':bibleId}, function(err, book) {
+             
+                     if (!err && book) {
+          
+                         book.bookName = req.body.bookName;
+                         book.chapters = req.body.chapters;
+
+                         book.save(function(err) {
+                         if (!err) {
+                             res.status(200).json({
+                             message: "Book updated: " + bibleId
+                         });
+                    } else {
+                        res.status(500).json({
+                            message: "Could not update book. " + err
+                        });
+                    }
                 });
-                } else {
+            } else if (!err) {
+                 res.status(404).json({
+                     message: "Could not find book."
+                 });
+                 } else {
                     res.status(500).json({
-                        message: "Could not update book. " + err
+                        message: "Could not update book." + err
+                    });
+                 }
+            });
+            } else if (!err) {
+                // User is trying to create a Book with a name that already exists.
+                res.status(403).json({
+                    message: "Cannot create Book with the same Book Name."
+                });
+            } else {
+                res.status(500).json({
+                    message: err
                 });
             }
-        });
-    } else if (!err) {
-        res.status(404).json({
-             message: "Could not find book."
-        });
-        } else {
-            res.status(500).json({
-                message: "Could not update book." + err
-            });
-        }
-    });
+      });
+
 });
 
 // Return router
