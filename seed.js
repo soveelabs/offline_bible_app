@@ -1,9 +1,9 @@
 var models = require('./models');
 
 models.User.create({
-  email: 'binue@sove.com',
-  hashed_password: '$2a$10$aZB36UooZpL.fAgbQVN/j.pfZVVvkHxEnj7vfkVSqwBOBZbB/IAAK',
-  password_reset_token: 'topsecret200'
+  email: 'joel@mail.com',
+  hashed_password: '$2a$08$OGj1xfz9LUBQFej.m3nEuuYty8FMnV6yAOr5bf2afQoUS8aC8zmB6',
+  password_reset_token: 'resetpass'
 }, function() {
   models.OAuthClientsModel.create({
     clientId: 'papers3',

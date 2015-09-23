@@ -1,15 +1,15 @@
-
 // Dependencies
-var restful = require('node-restful');
-var mongoose = restful.mongoose;
+var mongoose = require('mongoose');
+var Book = require('./book.js');
 
 // Schema
 var bibleSchema = new mongoose.Schema({
     bibleId: String,
     version: String,
     langCode: String,
-    bibleUrl: String
+    bibleUrl: String,
+    books: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Book' }]
 });
 
 // Return model
-module.exports = restful.model('Bibles', bibleSchema);
+module.exports = mongoose.model('Bible', bibleSchema);
