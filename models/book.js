@@ -5,7 +5,12 @@ var chapter = require('./chapter.js');
 // Schema
 var bookSchema = new mongoose.Schema({
     bookName: String,
-    chapters: [chapter]
+    bibleId: String,
+    chapters: {
+    	chapter: String,
+    	url: String
+    }
+    
 });
 
 // Return model
