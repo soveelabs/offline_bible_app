@@ -28,10 +28,10 @@ app.use(app.oauth.errorHandler());
 
 
 // Routes
-app.use('/api', app.oauth.authorise(), require('./routes/api'));
+app.use('/api', app.oauth.authorise(), require('./routes/gateway_language_apis'));
 
 
- // Auth for sovee
+ // Auth for sovee we can remove it, if not required
   // mw = auth({
   //   auth: {
   //     host: 'https://staging-auth.sovee.com'
