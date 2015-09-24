@@ -115,7 +115,7 @@ router.route('/bibles/:bible_id/books').put( function(req, res) {
                  }
             });
             } else if (!err) {
-                // User is trying to create a Book with a name that already exists.
+                //User is trying to create a Book with a name that already exists.
                 res.status(403).json({
                     message: "Cannot create Book with the same Book Name."
                 });
