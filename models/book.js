@@ -6,10 +6,7 @@ var chapter = require('./chapter.js');
 var bookSchema = new mongoose.Schema({
     bookName: String,
     bibleId: String,
-    chapters: {
-    	chapter: String,
-    	url: String
-    }
+    chapters: [{ type: mongoose.Schema.Types.ObjectId, ref: 'chapter' }]
     
 });
 

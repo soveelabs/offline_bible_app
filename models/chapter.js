@@ -4,14 +4,13 @@ var mongoose = require('mongoose');
 // Schema
 var chapterSchema = new mongoose.Schema({
 	bookId: String,
-    chapters: {
-    	chapter: String,
-    	url: String,
-    	translations: {
-    		bibleId: String,
-    		url: String
-    	}
+    chapter: String,
+    url: String,
+    translations: {
+    	bibleId: String,
+    	url: String
     }
+    
 });
 
 
