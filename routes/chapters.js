@@ -24,18 +24,17 @@ console.log(req.body);
           if (!err && !chapter) {
               var bookId = req.params.book_id;
               console.log(bookId);
-              var id = new mongoose.mongo.ObjectID(bookId);
-              console.log(id);
-              Book.findById(id, function(err, book) {
+
+              Book.findById(bookId, function(err, book) {
               
-                  if (!err && !book) {
+                  if (!err && book) {
  
                       var chapter = new Chapter();
                       chapter.chapter = req.body.chapter;
                       chapter.bookId = bookId;
                       chapter.url = req.body.url;
                       chapter.translations = req.body.translations;
-                      console.log(books);
+                      console.log(book);
                       
                       book.chapters.push(chapter._id);
         
