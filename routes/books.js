@@ -27,7 +27,7 @@ router.route('/bibles/:bible_id/books').post(function(req, res){
 	                    var newBook = new Book();
 	                    newBook.bookName = inputBookName;
                       newBook.bibleId = bibleId;
-                      newBook.chapters = req.body.chapters;
+                      //newBook.chapters = req.body.chapters;
 	                    bible.books.push(newBook._id); //Saving ref of books to Bible model.
 	                    newBook.save(function(bookErr) {
 		                      bible.save(function(bibleErr) {
@@ -91,7 +91,7 @@ router.route('/bibles/:bible_id/books').put( function(req, res) {
                      if (!err && book) {
           
                          book.bookName = req.body.bookName;
-                         book.chapters = req.body.chapters;
+                         //book.chapters = req.body.chapters;
 
                          book.save(function(err) {
                          if (!err) {

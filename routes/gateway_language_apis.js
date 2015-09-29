@@ -98,54 +98,5 @@ router.route('/bibles/:bible_id').put( function(req, res) {
 });
 
 
-// Bible Book Routes
-
-// CREATE  Bible Books
-router.route('/bibles/:bible_id/books').post(function(req, res){
-  var inputBookName = req.body.book.trim();
-  Book.findOne({
-    bookName: {
-      $regex: new RegExp(inputBookName, "i")
-    }
-  }, function(err, book) { // Using RegEx - search is case insensitive
-    if (!err && !book) {
-	bibleId = req.params.bible_id;
-      Bible.findOne({'bibleId':bibleId}, function(err, bible) { //Checking for valid bible_id.
-	if (!err && bible) {
-	    var newBook = new Book();
-	    newBook.bookName = inputBookName;
-	    bible.books.push(newBook._id); //Saving ref of books to Bible model.
-	    newBook.save(function(bookErr) {
-		bible.save(function(bibleErr) {
-		    if (!bookErr && !bibleErr) {
-			res.status(201).json({
-			    message: "Book created with bookName: " + inputBookName
-			});
-		    } else {
-			res.status(500).json({
-			    message: "Could not create Book."
-			});
-		    }
-		});
-	});
-	} else if (!err) {
-	    res.status(404).json({
-		message: "Could not find bible with the bibleId."
-	    });
-	}
-      });
-    } else if (!err) {
-      // User is trying to create a Book with a name that already exists.
-	res.status(403).json({
-            message: "Cannot create Book with the same Book Name."
-	});
-    } else {
-	res.status(500).json({
-            message: err
-	});
-    }
-  });
-});
-
 // Return router
 module.exports = router;
