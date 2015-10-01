@@ -6,10 +6,12 @@ var chapterSchema = new mongoose.Schema({
 	bookId: String,
     chapter: String,
     url: String,
-    translations: {
+    translations: [{
     	bibleId: String,
-    	url: String
-    }
+    	url: String,
+    	langCode: String,
+    	version: String
+    }]
     
 });
 
