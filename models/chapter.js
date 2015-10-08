@@ -1,6 +1,6 @@
 // Dependencies
 var mongoose = require('mongoose');
-var bible = require('./bible.js')
+var TranslatedBible = require('./translated_bible.js');
 
 // Schema
 var chapterSchema = new mongoose.Schema({
@@ -9,7 +9,7 @@ var chapterSchema = new mongoose.Schema({
     url: String,
     translations: [{
 	//The translated Bible ID
-    	bibleId: {type: mongoose.Schema.Types.ObjectId, ref: 'bible'}, 
+    	bibleId: {type: mongoose.Schema.Types.ObjectId, ref: 'TranslatedBible'}, 
 
 	//The URL of the Excel file.
     	url: String

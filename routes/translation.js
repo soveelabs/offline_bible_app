@@ -6,8 +6,8 @@ var mongoose = require('mongoose');
 // Models
 var Bible = require('../models/bible');
 var Book =  require('../models/book');
-var Chapter =  require('../models/chapter');
 var TranslatedBible = require('../models/translated_bible');
+var Chapter =  require('../models/chapter');
 
 // Bible Translation Routes
 
@@ -112,7 +112,7 @@ router.route('/bibles/:bible_id/translations').post(function(req, res){
 
 
 // LIST translations Chapters
-router.route('/bibles/:bible_id/books/:book_id/chapters/:chapter_id/translations/:translated_bible_id').get(function(req, res) {
+router.route('/bibles/:bible_id/books/:book_id/chapters/:chapter_id/translations').get(function(req, res) {
     bibleId = req.params.bible_id;
     bookId = req.params.book_id;
     chapterId = req.params.chapter_id;
@@ -120,29 +120,46 @@ router.route('/bibles/:bible_id/books/:book_id/chapters/:chapter_id/translations
 
     json['bibleId'] = bibleId;
     json['bookId'] = bookId;
+    json['chapter'] = chapterId;
 
-    Bible.findOne({'bibleId':bibleId}, function(err, bibles) {
-        if (err) {
-            return res.send(err);
-        }
-        //console.log(bibles);
-        //json.bible = bibles;
-        
-        json['version'] = bibles['version'];
-        json['langCode'] = bibles['langCode'];
-        
-      });
-
-    Chapter.findOne({'_id':chapterId}, function(err, chapters) {
-        if (err) {
-            return res.send(err);
-        }
-        json['chapter'] = chapters['chapter'];
-        json['translations'] = chapters['translations'];
-        res.json(json);
-    });
+    Bible
+	.findOne({'bibleId':bibleId})
+	.populate('books')
+        .exec(function (err, selBible) {
+	    if (err) {
+		return res.send(err);
+	    }
+	    json['version'] = selBible.version;
+	    json['langCode'] = selBible.langCode;
+	    selBible.books.forEach(function (book) {
+		if (book.bookName == bookId) {
+		    Book.findById(book._id)
+		    .populate('chapters')
+		    .exec(function (bookErr, bookDoc) {
+			bookDoc.chapters.forEach(function (chpts) {
+			    if (chpts.chapter == chapterId) {
+				var promise = Chapter.populate(chpts, [{path:'translations.bibleId'}]);
+				promise.then(function(value){
+				    json['translations'] = []
+				    var transJson = {}
+				    value.translations.forEach(function(transUnit){
+					transJson = {}
+					transJson['bibleId'] = transUnit.bibleId.bibleId;
+					transJson['version'] = transUnit.bibleId.version;
+					transJson['langCode'] = transUnit.bibleId.langCode;
+					transJson['url'] = transUnit.url;
+					json['translations'].push(transJson);
+				    });
+				    res.status(200).json(json);
+				}).end();
+			    }
+			});
+		    });
+		}
+	    });
+	});
 });
-
+	    
 
 // UPDATE Translation
 router.route('/bibles/:bible_id/books/:book_id/chapters/:chapter_id/translations/:translated_bible_id').put(function(req, res){
