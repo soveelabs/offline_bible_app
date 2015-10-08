@@ -161,7 +161,7 @@ router.route('/bibles/:bible_id/books/:book_id/chapters/:chapter_id/translations
 });
 	    
 
-// UPDATE Translation
+// UPDATE specific Translation
 router.route('/bibles/:bible_id/books/:book_id/chapters/:chapter_id/translations/:translated_bible_id').put(function(req, res){
     bibleId = req.params.bible_id;
     bookId = req.params.book_id;
@@ -202,6 +202,65 @@ router.route('/bibles/:bible_id/books/:book_id/chapters/:chapter_id/translations
 					transJson['langCode'] = transUnit.bibleId.langCode;
 					transJson['url'] = transUnit.url;
 					json['translations'].push(transJson);
+					}
+				    });
+				    if(foundFlag) {
+					res.status(200).json(json);
+				    } else {
+					res.status(404).json({message:"Unable to find and update requested record."});
+				    }
+				}).end();
+			    }
+			});
+		    });
+		}
+	    });
+	});
+});
+
+
+// UPDATE specific Translation
+router.route('/bibles/:bible_id/books/:book_id/chapters/:chapter_id/translations/:translated_bible_id').get(function(req, res){
+    bibleId = req.params.bible_id;
+    bookId = req.params.book_id;
+    chapterId = req.params.chapter_id;
+    translatedBibleId = req.params.translated_bible_id;
+    var foundFlag = false;
+    var json = {};
+    json['bibleId'] = bibleId;
+    json['bookId'] = bookId;
+    json['chapter'] = chapterId;
+
+    Bible
+	.findOne({'bibleId':bibleId})
+	.populate('books')
+        .exec(function (err, selBible) {
+	    if (err) {
+		return res.send(err);
+	    }
+	    json['version'] = selBible.version;
+	    json['langCode'] = selBible.langCode;
+	    selBible.books.forEach(function (book) {
+		if (book.bookName == bookId) {
+		    Book.findById(book._id)
+		    .populate('chapters')
+		    .exec(function (bookErr, bookDoc) {
+			bookDoc.chapters.forEach(function (chpts) {
+			    if (chpts.chapter == chapterId) {
+				var promise = Chapter.populate(chpts, [{path:'translations.bibleId'}]);
+				promise.then(function(value){
+				    json['translations'] = []
+				    var transJson = {}
+				    value.translations.forEach(function(transUnit){
+					if(transUnit.bibleId.bibleId == translatedBibleId) {
+					    //TODO: Allow user to update URL. Verify if this user has checked out.
+					    foundFlag = true;
+					    transJson = {};
+					    transJson['bibleId'] = transUnit.bibleId.bibleId;
+					    transJson['version'] = transUnit.bibleId.version;
+					    transJson['langCode'] = transUnit.bibleId.langCode;
+					    transJson['url'] = transUnit.url;
+					    json['translations'].push(transJson);
 					}
 				    });
 				    if(foundFlag) {
