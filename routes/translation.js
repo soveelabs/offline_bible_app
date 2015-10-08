@@ -58,7 +58,6 @@ router.route('/bibles/:bible_id/translations').post(function(req, res){
 });
 
 
-
 //    Bible.findOne({'bibleId':bibleId}, function(bibleErr, bible) { //Checking for valid bible_id.
 //	if (!bible) {
 //
@@ -219,7 +218,7 @@ router.route('/bibles/:bible_id/books/:book_id/chapters/:chapter_id/translations
 });
 
 
-// UPDATE specific Translation
+// LIST specific Translation.
 router.route('/bibles/:bible_id/books/:book_id/chapters/:chapter_id/translations/:translated_bible_id').get(function(req, res){
     bibleId = req.params.bible_id;
     bookId = req.params.book_id;
@@ -253,7 +252,6 @@ router.route('/bibles/:bible_id/books/:book_id/chapters/:chapter_id/translations
 				    var transJson = {}
 				    value.translations.forEach(function(transUnit){
 					if(transUnit.bibleId.bibleId == translatedBibleId) {
-					    //TODO: Allow user to update URL. Verify if this user has checked out.
 					    foundFlag = true;
 					    transJson = {};
 					    transJson['bibleId'] = transUnit.bibleId.bibleId;
@@ -266,7 +264,7 @@ router.route('/bibles/:bible_id/books/:book_id/chapters/:chapter_id/translations
 				    if(foundFlag) {
 					res.status(200).json(json);
 				    } else {
-					res.status(404).json({message:"Unable to find and update requested record."});
+					res.status(404).json({});
 				    }
 				}).end();
 			    }
