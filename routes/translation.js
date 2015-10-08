@@ -111,7 +111,7 @@ router.route('/bibles/:bible_id/translations').post(function(req, res){
 
 
 
-// LIST translations Chapters
+// LIST all translations of a chapter.
 router.route('/bibles/:bible_id/books/:book_id/chapters/:chapter_id/translations').get(function(req, res) {
     bibleId = req.params.bible_id;
     bookId = req.params.book_id;
@@ -163,41 +163,59 @@ router.route('/bibles/:bible_id/books/:book_id/chapters/:chapter_id/translations
 
 // UPDATE Translation
 router.route('/bibles/:bible_id/books/:book_id/chapters/:chapter_id/translations/:translated_bible_id').put(function(req, res){
+    bibleId = req.params.bible_id;
+    bookId = req.params.book_id;
+    chapterId = req.params.chapter_id;
+    translatedBibleId = req.params.translated_bible_id;
+    var foundFlag = false;
+    var json = {};
+    json['bibleId'] = bibleId;
+    json['bookId'] = bookId;
+    json['chapter'] = chapterId;
 
-  Chapter.findById(req.params.chapter_id, function(err, chapter) {
-           
-    if (!err && chapter) {
-
-     var length = chapter.translations.length;   
-     for (var i = 0; i < length; i++) {
-         
-         console.log(chapter.translations[i]['bibleId']);
-         
-         if (chapter.translations[i]['bibleId'] == req.params.translated_bible_id) {
-              chapter.translations[i]['url'] = req.body.url;
-         }
-     }
-        
-      chapter.save(function(err) {         
-        
-        if (!err) {
-          res.status(201).json({
-            message: "Translation for chapter Id: " + req.params.chapter_id + " updated."
-          });
-        } else {
-          res.status(500).json({
-            message: "Could not create chapter translation. Error: " + err
-          });
-        }
-                          
-      });
-    } else if (!err) {
-      res.status(404).json({
-        message: "Could not find chapter with the chapterId."
-      });
-     }
-  });
-           
+    Bible
+	.findOne({'bibleId':bibleId})
+	.populate('books')
+        .exec(function (err, selBible) {
+	    if (err) {
+		return res.send(err);
+	    }
+	    json['version'] = selBible.version;
+	    json['langCode'] = selBible.langCode;
+	    selBible.books.forEach(function (book) {
+		if (book.bookName == bookId) {
+		    Book.findById(book._id)
+		    .populate('chapters')
+		    .exec(function (bookErr, bookDoc) {
+			bookDoc.chapters.forEach(function (chpts) {
+			    if (chpts.chapter == chapterId) {
+				var promise = Chapter.populate(chpts, [{path:'translations.bibleId'}]);
+				promise.then(function(value){
+				    json['translations'] = []
+				    var transJson = {}
+				    value.translations.forEach(function(transUnit){
+					if(transUnit.bibleId.bibleId == translatedBibleId) {
+					    //TODO: Allow user to update URL. Verify if this user has checked out.
+					transJson = {}
+					transJson['bibleId'] = transUnit.bibleId.bibleId;
+					transJson['version'] = transUnit.bibleId.version;
+					transJson['langCode'] = transUnit.bibleId.langCode;
+					transJson['url'] = transUnit.url;
+					json['translations'].push(transJson);
+					}
+				    });
+				    if(foundFlag) {
+					res.status(200).json(json);
+				    } else {
+					res.status(404).json({message:"Unable to find and update requested record."});
+				    }
+				}).end();
+			    }
+			});
+		    });
+		}
+	    });
+	});
 });
 
 
