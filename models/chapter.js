@@ -1,20 +1,21 @@
 // Dependencies
 var mongoose = require('mongoose');
+var bible = require('./bible.js')
 
 // Schema
 var chapterSchema = new mongoose.Schema({
-	bookId: String,
+    bookId: String,
     chapter: String,
     url: String,
     translations: [{
-    	bibleId: String,
-    	url: String,
-    	langCode: String,
-    	version: String
+	//The translated Bible ID
+    	bibleId: {type: mongoose.Schema.Types.ObjectId, ref: 'bible'}, 
+
+	//The URL of the Excel file.
+    	url: String
     }]
-    
 });
 
 
 // Return model
-module.exports = mongoose.model('Chapter', chapterSchema);;
+module.exports = mongoose.model('Chapter', chapterSchema);

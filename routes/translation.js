@@ -7,47 +7,112 @@ var mongoose = require('mongoose');
 var Bible = require('../models/bible');
 var Book =  require('../models/book');
 var Chapter =  require('../models/chapter');
-
+var TranslatedBible = require('../models/translated_bible');
 
 // Bible Translation Routes
 
 // CREATE Translation
-router.route('/bibles/:bible_id/books/:book_id/chapters/:chapter_id/translations').post(function(req, res){
-
-  console.log(req.body);
-
-  Chapter.findById(req.params.chapter_id, function(err, chapter) {
-           
-    if (!err && chapter) {
-
-      console.log(chapter);
-                    
-      chapter.translations.push(req.body);
-        
-      chapter.save(function(err) {         
-        
-        if (!err) {
-          res.status(201).json({
-            message: "Translation for chapter Id: " + req.params.chapter_id + " saved."
-          });
-        } else {
-          res.status(500).json({
-            message: "Could not create chapter translation. Error: " + err
-          });
-        }
-                          
-      });
-    } else if (!err) {
-      res.status(404).json({
-        message: "Could not find chapter with the chapterId."
-      });
-    }
-  });
-           
+router.route('/bibles/:bible_id/translations').post(function(req, res){
+    var bibleId = req.params.bible_id;
+    var inputTranslatedBibleId = req.body.translations[0].bibleId;
+    var inputTranslatedVersion = req.body.translations[0].version;
+    var inputTranslatedLangCode = req.body.translations[0].langCode;
+    TranslatedBible.findOne({
+	bibleId: {$regex: new RegExp(inputTranslatedBibleId, "i")}
+    }, function(err, translation) {
+	if(!err && !translation) {
+	    Bible.findOne({'bibleId':bibleId}, function(bibleErr, bible) { //Checking for valid bible_id.
+		if(!bibleErr && bible) {
+		    var newTranslation = new TranslatedBible();
+		    newTranslation.bibleId = inputTranslatedBibleId;
+		    newTranslation.sourceBibleId = req.params.bible_id;
+		    newTranslation.version = inputTranslatedVersion;
+		    newTranslation.langCode = inputTranslatedLangCode;
+		    newTranslation.save(function(saveErr) {
+			if(!saveErr) {
+			    res.status(201).json({
+				message: "New Translation created."
+			    });
+			} else {
+			    res.status(500).json({
+				message: "Could not create new translation. " + saveErr
+			    });
+			}
+		    });
+		} else if (!bible) {
+		    res.status(404).json({
+			message: "Could not find source BibleId."
+		    });
+		}
+	    });
+	} else if (!err && translation) {
+	    res.status(409).json({
+		message: "Cannot create duplicate translation."
+	    });
+	} else if (err) {
+	    res.status(500).json({
+		message: "Could not create new translation. " + err
+	    });
+	}
+    });
 });
 
+
+
+//    Bible.findOne({'bibleId':bibleId}, function(bibleErr, bible) { //Checking for valid bible_id.
+//	if (!bible) {
+//
+//	    source = {"source":{"bibleId":bibleId, "version":"", "langCode":"", "error":"Source Bible not found."}}
+//	} else {
+//	    	console.log("when the value is" + bibleId)
+//	    source = {"source":{"bibleId":bibleId, "version":bible.bibleId, "langCode":bible.langCode}}
+//	}
+//    });
+//    console.log("it is now "+source);
+//    req.body.translations.forEach(function(trans) {
+//	var inputTranslatedBibleId = trans.bibleId;
+//	var inputTranslatedVersion = trans.version;
+//	var inputTranslatedLangCode = trans.langCode;
+//	console.log(trans.bibleId);
+//	console.log(trans.version);
+//	console.log(trans.langCode);
+//	TranslatedBible.findOne({
+//	    bibleId: {$regex: new RegExp(inputTranslatedBibleId, "i")}
+//	}, function(err, translation) {
+//	    if(!err && !translation) {
+//		var newTranslation = new TranslatedBible();
+//		newTranslation.bibleId = inputTranslatedBibleId;
+//		newTranslation.sourceBibleId = req.params.bible_id;
+//		newTranslation.version = inputTranslatedVersion;
+//		newTranslation.langCode = inputTranslatedLangCode;
+//		newTranslation.save(function(saveErr) {
+//		    if(!saveErr) {
+//			targets.push({"bibleId":inputTranslatedBibleId, "version":inputTranslatedVersion, "langCode":inputTranslatedLangCode, "status":201, "message":"New Translation created."});
+//		    } else {
+//			targets.push({"bibleId":inputTranslatedBibleId, "version":inputTranslatedVersion, "langCode":inputTranslatedLangCode, "status":500, "message":"Could not create new translation. " + saveErr});
+//			errorFlag = true;
+//		    }
+//		});
+//	    } else if (!err && translation) {
+//		targets.push({"bibleId":inputTranslatedBibleId, "version":inputTranslatedVersion, "langCode":inputTranslatedLangCode, "status":409, "message":"Cannot create duplicate translation."});
+//		errorFlag = true;
+//	    } else if (err) {
+//		targets.push({"bibleId":inputTranslatedBibleId, "version":inputTranslatedVersion, "langCode":inputTranslatedLangCode, "status":500, "message":"Could not create new translation." + err});
+//		errorFlag = true;
+//	    }
+//	});
+//    });
+//    if(errorFlag) {
+//	res.status(400).json({"translations":{"source":source,"target":targets}});
+//    } else {
+//	res.status(201).json({"translations":{"source":source,"target":targets}});
+//    }
+// });
+
+
+
 // LIST translations Chapters
-router.route('/bibles/:bible_id/books/:book_id/chapters/:chapter_id/translations').get(function(req, res) {
+router.route('/bibles/:bible_id/books/:book_id/chapters/:chapter_id/translations/:translated_bible_id').get(function(req, res) {
     bibleId = req.params.bible_id;
     bookId = req.params.book_id;
     chapterId = req.params.chapter_id;
