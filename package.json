@@ -9,11 +9,13 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "bcrypt": "^0.8.5",
     "body-parser": "^1.13.3",
     "express": "^4.13.3",
+    "lodash": "~3.10.1",
     "mongoose": "^4.1.6",
-    "node-oauth2-server": "^2.4.0",
     "node-auth": "git+https://firma8deploy:NGSUqNqLMnmSLt7qd@bitbucket.org/firma8/nodeauth.git#v2.0.2",
-    "bcrypt": "^0.8.5"
+    "node-oauth2-server": "^2.4.0",
+    "request": "^2.64.0"
   }
 }
