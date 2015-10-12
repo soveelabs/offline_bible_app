@@ -102,7 +102,7 @@ router.route('/bibles/:bible_id/books/:book_id/chapters').get(function(req, res)
 
 // Update Chapters
 
-router.route('/bibles/:bible_id/books/:book_id').put( function(req, res) {
+router.route('/bibles/:bible_id/books/:book_id/chapters/:chapter_id').put( function(req, res) {
   var bibleId = req.params.bible_id;
   var bookId = req.params.book_id;
   Chapter.findOne({'bookId':bookId}, function(err, chapter) {
