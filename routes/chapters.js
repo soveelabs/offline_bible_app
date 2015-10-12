@@ -4,6 +4,7 @@ var router = express.Router();
 var mongoose = require('mongoose');
 var request = require('request');
 var _ = require('lodash');
+var async = require('async');
 
 // Models
 var Bible = require('../models/bible');
@@ -113,6 +114,23 @@ router.route('/bibles/:bible_id/books/:book_id/chapters').get(function(req, res)
     var chaptJsonArr = [];
     var chaptJson = {};
     var transJson = {};
+
+    var iterateChapters = function (num, callback) {
+	Chapter.populate(num, [{path:'translations.bibleId'}], function(chaptError, value){
+	    chaptJson['chapter'] = value.chapter;
+	    chaptJson['translations'] = [];
+	    value.translations.forEach(function(transUnit){
+		transJson = {};
+		transJson['bibleId'] = transUnit.bibleId.bibleId;
+		transJson['version'] = transUnit.bibleId.version;
+		transJson['langCode'] = transUnit.bibleId.langCode;
+		transJson['url'] = transUnit.url;
+		chaptJson['translations'].push(transJson);
+	    });
+	    return callback(null, chaptJson);
+	});
+    };
+
     Bible
 	.findOne({'bibleId':bibleId})
 	.populate('books')
@@ -125,97 +143,53 @@ router.route('/bibles/:bible_id/books/:book_id/chapters').get(function(req, res)
 	    selBible.books.forEach(function (book) {
 		if (book.bookName == bookId) {
 		    Book.findById(book._id)
-		    .populate('chapters')
-		    .exec(function (bookErr, bookDoc) {
-			bookDoc.chapters.forEach(function (chpts, index) {
-			    var promise = Chapter.populate(chpts, [{path:'translations.bibleId'}]);
-			    promise.then(function(value){
-				chaptJson['chapter'] = value.chapter;
-				chaptJson['translations'] = [];
-				value.translations.forEach(function(transUnit){
-				    transJson = {};
-				    transJson['bibleId'] = transUnit.bibleId.bibleId;
-				    transJson['version'] = transUnit.bibleId.version;
-				    transJson['langCode'] = transUnit.bibleId.langCode;
-				    transJson['url'] = transUnit.url;
-				    chaptJson['translations'].push(transJson);
-				});
-			    }).end();
-			    chaptJsonArr.push(chaptJson);
-			    if ((bookDoc.chapters.length - 1) === index) {
-				json['chapters'] = chaptJson;
+			.populate('chapters')
+			.exec(function (bookErr, bookDoc) {
+			    async.map(bookDoc.chapters, iterateChapters, function (err, results) {
+				json['chapters'] = results;
 				res.status(200).json(json);
-			    }
+			    });
 			});
-		    });
 		}
 	    });
 	});
-
-
-//    bibleId = req.params.bible_id;
-//    bookId = req.params.book_id;
-//    var json = {};
-//
-//    json['bibleId'] = bibleId;
-//    json['bookId'] = bookId;
-//
-//    Bible.findOne({'bibleId':bibleId}, function(err, bibles) {
-//        if (err) {
-//            return res.send(err);
-//        }
-//        //console.log(bibles);
-//        //json.bible = bibles;
-//        
-//        json['version'] = bibles['version'];
-//        json['langCode'] = bibles['langCode'];
-//        
-//      });
-//
-//        Chapter.find({'bookId':bookId}, function(err, chapters) {
-//        if (err) {
-//            return res.send(err);
-//        }
-//        json.chapters= chapters;
-//        res.json(json);
-//    });
 });
+
 
 // Update Chapters
-
 router.route('/bibles/:bible_id/books/:book_id').put( function(req, res) {
-  var bibleId = req.params.bible_id;
-  var bookId = req.params.book_id;
-  Chapter.findOne({'bookId':bookId}, function(err, chapter) {
-    if (!err && chapter) {
-       chapter.bookId = bookId;
-       chapter.chapter = req.body.chapter;
-       chapter.url = req.body.url;
-       chapter.translations = req.body.translations;
+	var bibleId = req.params.bible_id;
+	var bookId = req.params.book_id;
+	Chapter.findOne({'bookId':bookId}, function(err, chapter) {
+	    if (!err && chapter) {
+		chapter.bookId = bookId;
+		chapter.chapter = req.body.chapter;
+		chapter.url = req.body.url;
+		chapter.translations = req.body.translations;
 
-      chapter.save(function(err) {
-        if (!err) {
-          res.status(200).json({
-            message: "Chapters updated: " + bookId
-          });
-        } else {
-          res.status(500).json({
-            message: "Could not update chapter. " + err
-          });
-        }
-      });
-    } else if (!err) {
-      res.status(404).json({
-        message: "Could not find book."
-      });
-    } else {
-      res.status(500).json({
-        message: "Could not update chapters ." + err
-      });
-    }
-  });
-});
+		chapter.save(function(err) {
+		    if (!err) {
+			res.status(200).json({
+			    message: "Chapters updated: " + bookId
+			});
+		    } else {
+			res.status(500).json({
+			    message: "Could not update chapter. " + err
+			});
+		    }
+		});
+	    } else if (!err) {
+		res.status(404).json({
+		    message: "Could not find book."
+		});
+	    } else {
+		res.status(500).json({
+		    message: "Could not update chapters ." + err
+		});
+	    }
+	});
+    });
 
 
-// Return router
-module.exports = router;
+    // Return router
+    module.exports = router;
