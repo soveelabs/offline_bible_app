@@ -1,6 +1,6 @@
 // Dependencies
 var mongoose = require('mongoose');
-var chapter = require('./chapter.js');
+var Chapter = require('./chapter.js');
 
 // Schema
 var bookSchema = new mongoose.Schema({
@@ -8,7 +8,7 @@ var bookSchema = new mongoose.Schema({
     bibleId: String,
     bookId: String,
     url: String,
-    chapters: [{ type: mongoose.Schema.Types.ObjectId, ref: 'chapter' }]
+    chapters: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Chapter' }]
     
 });
 
