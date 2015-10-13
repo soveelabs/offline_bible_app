@@ -2,139 +2,255 @@
 var express = require('express');
 var router = express.Router();
 var mongoose = require('mongoose');
+var request = require('request');
+var _ = require('lodash');
+var async = require('async');
 
 // Models
 var Bible = require('../models/bible');
 var Book =  require('../models/book');
 var Chapter =  require('../models/chapter');
-
+var Verse = require('../models/verse');
 
 // Bible Chapter Routes
 
 // CREATE Chapters
-router.route('/bibles/:bible_id/books/:book_id').post(function(req, res){
-
-console.log(req.body);
-
-  Chapter.findOne({
-    bibleId: {
-      $regex: new RegExp(req.params.bible_id, "i")
-    }
-  }, function(err, chapter) { // Using RegEx - search is case insensitive
-          if (!err && !chapter) {
-              var bookId = req.params.book_id;
-              console.log(bookId);
-
-              Book.findById(bookId, function(err, book) {
-              
-                  if (!err && book) {
- 
-                      var chapter = new Chapter();
-                      chapter.chapter = req.body.chapter;
-                      chapter.bookId = bookId;
-                      chapter.url = req.body.url;
-                      chapter.translations = req.body.translations;
-                      console.log(book);
-                      
-                      book.chapters.push(chapter._id);
-        
-                      chapter.save(function(err) {         
-        
-                          book.save(function(bookErr) {
-                              if (!err && !bookErr) {
-                                  res.status(201).json({
-                                      message: "Chapters created for Book Id: " + req.params.book_id
-                                  });
-                              } else {
-                                  res.status(500).json({
-                                      message: "Could not create chapter. Error: " + err
-                                  });
-                              }
-                          });
-                      });
-                    } else if (!err) {
-                          res.status(404).json({
-                              message: "Could not find book with the bookId."
-                          });
-                    }
-              });
-            } else if (!err) {
-                           res.status(403).json({
-                               message: "Cannot create chapter."
-                           });              
-            }  else {
-                 res.status(500).json({
-                     message: err
-                 });
-            }
-      });
+router.route('/bibles/:bible_id/books/:book_id/chapters').post(function(req, res){
+    var json = {};
+    var bibleId = req.params.bible_id;
+    var bookId = req.params.book_id;
+    var tempArr = [];
+    var resBuildChapt = {};
+    var existsFlag = false;
+    var bookFlag = false;
+    Bible
+	.findOne({'bibleId':bibleId})
+	.populate('books')
+        .exec(function (err, selBible) {
+	    if (err) {
+		return res.send(err);
+	    }
+	    selBible.books.forEach(function (book) {
+		if (book.bookName == bookId) {
+		    Book.findById(book._id)
+			.populate('chapters')
+			.exec(function (bookErr, bookDoc) {
+			    if(bookErr) {
+				bookFlag = true;
+				return res.send(bookErr);
+			    }
+			    if (bookFlag) {
+				return;
+			    }
+			    req.body.chapters.forEach(function(inputChapters) {
+				var inputChapterUrl = inputChapters.url;
+				var inputChapter = inputChapters.chapter;
+				if(bookDoc.chapters.length > 0){
+				    existsFlag = bookDoc.chapters.some(function (chpts) {
+					return chpts.chapter == inputChapter;
+				    });
+				}
+				if(existsFlag){
+				    return res.status(409).json({
+					message: "Chapter already exists."
+				    });
+				} else if(!existsFlag){
+				    json['bibleId'] = bibleId;
+				    json['version'] = selBible.version;
+				    json['langCode'] = selBible.langCode;
+				    json['bookId'] = bookId;
+				    request("https://parallel-api.cloud.sovee.com/usx?url=" + inputChapterUrl, function (error, response, body) {
+					if (!error && response.statusCode == 200) {
+					    var resJson = JSON.parse(body);
+					    resJson.forEach(function(books){
+						//		    book = Object.keys(books)[0];
+						var chaptVerses = _.pluck(books, 'chapters');
+						_.forEach(chaptVerses[0], function(chapt, chaptNum) {
+						    //Create chapter
+						    var newChapter = new Chapter({
+							bookId: bookId,
+							chapter: chaptNum,
+							url: inputChapterUrl
+						    });
+						    newChapter.save(function(saveChaptError) {
+							if(saveChaptError){
+							    res.status(500).json({
+								message: "Could not create new chapter." + saveChaptError
+							    });
+							} else {
+							    bookDoc.chapters.push(newChapter._id);
+							    bookDoc.save();
+							    _.forEach(chapt, function(verse, verseNum) {
+								//Create verses
+								if( Number(verseNum) ) {
+								    var newVerse = Verse({
+									verse: verse,
+									verseNumber: verseNum,
+									bookId: bookId,
+									chapterId: newChapter._id,
+								    });
+								    newVerse.save();
+								}
+							    });
+							    resBuildChapt['chapter'] = newChapter.chapter;
+							    resBuildChapt['url'] = 'www.sovee.com/bibles/'+bibleId+'/books/'+bookId+'/chapters/'+newChapter.chapter;
+							    tempArr.push(resBuildChapt);
+							    json['chapters'] = tempArr;
+							    res.status(201).json(json);
+							}
+						    });
+						});
+					    });
+					}
+				    });
+				}
+			    });
+			});
+		}
+	    });
+	});
 });
 
-// LIST Bible Book Chapters
+// LIST Bible Chapters
 router.route('/bibles/:bible_id/books/:book_id/chapters').get(function(req, res) {
-    bibleId = req.params.bible_id;
-    bookId = req.params.book_id;
+    var bibleId = req.params.bible_id;
+    var bookId = req.params.book_id;
     var json = {};
-
     json['bibleId'] = bibleId;
     json['bookId'] = bookId;
+    var chaptJsonArr = [];
+    var chaptJson = {};
+    var transJson = {};
 
-    Bible.findOne({'bibleId':bibleId}, function(err, bibles) {
-        if (err) {
-            return res.send(err);
-        }
-        //console.log(bibles);
-        //json.bible = bibles;
-        
-        json['version'] = bibles['version'];
-        json['langCode'] = bibles['langCode'];
-        
-      });
+    var iterateChapters = function (num, callback) {
+	Chapter.populate(num, [{path:'translations.bibleId'}], function(chaptError, value){
+	    chaptJson['chapter'] = value.chapter;
+	    chaptJson['translations'] = [];
+	    value.translations.forEach(function(transUnit){
+		transJson = {};
+		transJson['bibleId'] = transUnit.bibleId.bibleId;
+		transJson['version'] = transUnit.bibleId.version;
+		transJson['langCode'] = transUnit.bibleId.langCode;
+		transJson['url'] = transUnit.url;
+		chaptJson['translations'].push(transJson);
+	    });
+	    return callback(null, chaptJson);
+	});
+    };
 
-        Chapter.find({'bookId':bookId}, function(err, chapters) {
-        if (err) {
-            return res.send(err);
-        }
-        json.chapters= chapters;
-        res.json(json);
-    });
+    Bible
+	.findOne({'bibleId':bibleId})
+	.populate('books')
+        .exec(function (err, selBible) {
+	    if (err) {
+		return res.send(err);
+	    }
+	    json['version'] = selBible.version;
+	    json['langCode'] = selBible.langCode;
+	    selBible.books.forEach(function (book) {
+		if (book.bookName == bookId) {
+		    Book.findById(book._id)
+			.populate('chapters')
+			.exec(function (bookErr, bookDoc) {
+			    async.map(bookDoc.chapters, iterateChapters, function (err, results) {
+				json['chapters'] = results;
+				res.status(200).json(json);
+			    });
+			});
+		}
+	    });
+	});
 });
+
 
 // Update Chapters
-
 router.route('/bibles/:bible_id/books/:book_id/chapters/:chapter_id').put( function(req, res) {
-  var bibleId = req.params.bible_id;
-  var bookId = req.params.book_id;
-  Chapter.findOne({'bookId':bookId}, function(err, chapter) {
-    if (!err && chapter) {
-       chapter.bookId = bookId;
-       chapter.chapter = req.body.chapter;
-       chapter.url = req.body.url;
-       chapter.translations = req.body.translations;
+    var json = {};
+    var bibleId = req.params.bible_id;
+    var bookId = req.params.book_id;
+    var chapterId = req.params.chapter_id;
+    var inputUrl = req.body.url;
+    var tempArr = [];
+    var resBuildChapt = {};
 
-      chapter.save(function(err) {
-        if (!err) {
-          res.status(200).json({
-            message: "Chapters updated: " + bookId
-          });
-        } else {
-          res.status(500).json({
-            message: "Could not update chapter. " + err
-          });
-        }
-      });
-    } else if (!err) {
-      res.status(404).json({
-        message: "Could not find book."
-      });
-    } else {
-      res.status(500).json({
-        message: "Could not update chapters ." + err
-      });
-    }
-  });
+    var iterateChapters = function(inputChapter, callback) {
+	var inputChapterNum = inputChapter.chapter;
+	if (chapterId == inputChapterNum) {
+	    request("https://parallel-api.cloud.sovee.com/usx?url=" + inputUrl, function (error, response, body) {
+		if (!error && response.statusCode == 200) {
+		    var resJson = JSON.parse(body);
+		    resJson.forEach(function(books){
+			var chaptVerses = _.pluck(books, 'chapters');
+			_.forEach(chaptVerses[0], function(chapt, chaptNum) {
+			    //Edit chapter
+			    Chapter.findOneAndUpdate({"_id":inputChapter._id},{url:inputUrl}, function(chaptError, chapter){
+				if(chaptError){
+				    callback("Chapter updation error.");
+				} else {
+				    Verse.find({chapterId:inputChapter._id}).remove(function(errs, ch){
+					if(errs) {
+					    callback("Verse updation error.");
+					}
+				    });
+				    _.forEach(chapt, function(verse, verseNum) {
+					//Create verses
+					if( Number(verseNum) ) {
+					    var newVerse = Verse({
+						verse: verse,
+						verseNumber: verseNum,
+						bookId: bookId,
+						chapterId: inputChapter._id,
+					    });
+					    newVerse.save();
+					}
+				    });
+				    callback();
+				}
+			    });
+			});
+		    });
+		} else if(error){ callback('Network error.'); }
+	    })
+	} else { callback();  }
+    };
+
+    Bible
+	.findOne({'bibleId':bibleId})
+	.populate('books')
+	.exec(function (err, selBible) {
+	    if (err) {
+		return res.send(err);
+	    }
+	    selBible.books.forEach(function (book) {
+		if (book.bookName == bookId) {
+		    Book.findById(book._id)
+			.populate('chapters')
+			.exec(function (bookErr, bookDoc) {
+			    if(bookErr) {
+				return res.send(bookErr);
+			    }
+			    if(bookDoc.chapters.length > 0){
+				//write here
+				async.each(bookDoc.chapters, iterateChapters, function(chaptErr){
+				    if(chaptErr) {
+					res.status(500).json({
+					message: "Could not update chapter." + chaptErr
+					});
+				    } else {
+					json['bibleId'] = bibleId;
+					json['version'] = selBible.version;
+					json['langCode'] = selBible.langCode;
+					json['bookId'] = bookId;
+					json['chapter'] = chapterId;
+					res.status(200).json(json);
+				    }
+				});
+			    }
+			});
+		}
+	    });
+	});
 });
-
 
 // Return router
 module.exports = router;
