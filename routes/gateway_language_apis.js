@@ -2,9 +2,14 @@
 var express = require('express');
 var router = express.Router();
 
+var request = require('request');
+var _ = require('lodash');
+
 // Models
 var Bible = require('../models/bible');
 var Book =  require('../models/book');
+var Chapter = require('../models/chapter');
+var Verse = require('../models/verses');
 
 // Gateway Language Bible Routes
 
@@ -18,11 +23,73 @@ router.route('/bibles').post(function(req, res){
   }, function(err, bible) { // Using RegEx - search is case insensitive
     if (!err && !bible) {
       var newBible = new Bible();
-
+      console.log(req.body);
       newBible.bibleId = req.body.bibleId;
       newBible.version = req.body.version;
       newBible.langCode = req.body.langCode;
       newBible.bibleUrl = req.body.bibleUrl;
+
+      request("https://parallel-api.cloud.sovee.com/usx?url=" + req.body.bibleUrl, function (error, response, body) {
+        console.log("i am here");
+        if (!error && response.statusCode == 200) {
+           
+            var resJson = JSON.parse(body); // Print the google web page.
+            console.log(resJson);
+
+            resJson.forEach(function(books){
+              
+
+                keys = Object.keys(books);
+                var verses = _.pluck(books, 'chapters');
+                var i = 0;
+
+                verses.forEach(function(versee) {
+
+                    _.forEach(versee, function(versesChapter, chapterKey) {
+                        
+                        var newChapter = Chapter();
+                        newChapter.chapter = chapterKey;
+                        newChapter.bookId = req.body.bookId;
+                        newChapter.save();
+                        newChapIds.push(newChapter._id);
+                        
+
+                        _.forEach(versesChapter, function(verseValue, verseKey){
+                            var newVerse = Verse();
+                            if( verseKey != 'footnotes') {
+                                newVerse.verse = verseValue;
+                                newVerse.bookId = req.body.bookId;
+                                newVerse.chapterId = newChapter._id;
+                                newVerse.save();
+
+                            }
+
+                        });
+
+                    });
+
+                });
+
+                //bookCreate(keys[0].trim());
+
+                var newBook = new Book();
+                newBook.bookName = keys[0].trim();
+                newBook.bibleId = req.body.bibleId;
+                newBook.bookId = keys[0].trim();
+                //newBook.url = req.body.url;
+                newBook.chapters.push(newChapIds);
+             
+                newBible.books.push(newBook._id); //Saving ref of books to Bible model.
+          
+                newBook.save()
+     
+
+            });
+            
+        }
+      });
+
+
       newBible.save(function(err) {
         if (!err) {
           res.status(201).json({
