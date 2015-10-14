@@ -10,7 +10,7 @@ var _ = require('lodash');
 var Bible = require('../models/bible');
 var Book =  require('../models/book');
 var Chapter = require('../models/chapter');
-var Verse = require('../models/verses');
+var Verse = require('../models/verse');
 
 
 // Bible Book Routes
