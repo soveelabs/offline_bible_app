@@ -22,7 +22,12 @@ router.route('/bibles').post(function(req, res){
     }
   }, function(err, bible) { // Using RegEx - search is case insensitive
     if (!err && !bible) {
+      
+      var newChapIds = [];
+
       var newBible = new Bible();
+      var count = 1;
+
       console.log(req.body);
       newBible.bibleId = req.body.bibleId;
       newBible.version = req.body.version;
@@ -30,11 +35,11 @@ router.route('/bibles').post(function(req, res){
       newBible.bibleUrl = req.body.bibleUrl;
 
       request("https://parallel-api.cloud.sovee.com/usx?url=" + req.body.bibleUrl, function (error, response, body) {
-        console.log("i am here");
+        console.log("i am here at top");
         if (!error && response.statusCode == 200) {
            
             var resJson = JSON.parse(body); // Print the google web page.
-            console.log(resJson);
+            console.log( "i am inside if " + body);
 
             resJson.forEach(function(books){
               
@@ -71,38 +76,43 @@ router.route('/bibles').post(function(req, res){
                 });
 
                 //bookCreate(keys[0].trim());
-
+                console.log(newChapIds);
                 var newBook = new Book();
                 newBook.bookName = keys[0].trim();
                 newBook.bibleId = req.body.bibleId;
                 newBook.bookId = keys[0].trim();
                 //newBook.url = req.body.url;
-                newBook.chapters.push(newChapIds);
+                newBook.chapters = newChapIds;
              
                 newBible.books.push(newBook._id); //Saving ref of books to Bible model.
           
                 newBook.save()
-     
-
             });
+
+              if (count == 1) {
+                newBible.save(function(err) {
+                  if (!err) {
+                    res.status(201).json({
+                      message: "Bible created with bibleId: " + req.body.bibleId
+                    });
+                  } else {
+                    res.status(500).json({
+                      message: "Could not create Bible. Error: " + err
+                    });
+                  }
+                });
+              }count++;
             
+        } else if(!error) {
+          console.log(error);
+          console.log("i am in else");
+          console.log(body);
+          return res.send(error);
         }
+          console.log("i am here bottom");
       });
 
-
-      newBible.save(function(err) {
-        if (!err) {
-          res.status(201).json({
-            message: "Bible created with bibleId: " + req.body.bibleId
-          });
-        } else {
-          res.status(500).json({
-            message: "Could not create Bible. Error: " + err
-          });
-        }
-      });
-
-    } else if (!err) {
+   } else if (!err) {
 
       // User is trying to create a Bible with a BibleId that already exists.
       res.status(403).json({
