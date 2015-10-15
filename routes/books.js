@@ -48,6 +48,7 @@ router.route('/bibles/:bible_id/books').post(function(req, res){
                     _.forEach(versesChapter, function(verseValue, verseKey){
                         var newVerse = Verse();
                         if( verseKey != 'footnotes') {
+                            newVerse.verseNumber = verseKey;
                             newVerse.verse = verseValue;
                             newVerse.bookId = req.body.bookId;
                             newVerse.chapterId = newChapter._id;
@@ -64,7 +65,12 @@ router.route('/bibles/:bible_id/books').post(function(req, res){
             bookCreate(keys[0].trim());
         });
         
-    }
+    }else if(!error) {
+          console.log(error);
+          console.log("i am in else");
+          console.log(body);
+          return res.send(error);
+        }
   });
 
 
@@ -79,7 +85,7 @@ function bookCreate(inputBookName) {
             newBook.bibleId = bibleId;
             newBook.bookId = req.body.bookId;
             newBook.url = req.body.url;
-            newBook.chapters.push(newChapIds);
+            newBook.chapters = newChapIds;
              //newBook.chapters = req.body.chapters;
 	        bible.books.push(newBook._id); //Saving ref of books to Bible model.
 	        newBook.save(function(bookErr) {
@@ -245,6 +251,7 @@ router.route('/bibles/:bible_id/books/:bookId').put( function(req, res) {
                                 }
                                 //console.log(verseExist['verse']);
                                 if (verseExist == null) {
+                                    newVerse.verseNumber = verseKey;
                                     newVerse.verse = verseValue;
                                     newVerse.bookId = req.params.bookId;
                                     newVerse.chapterId = newChapter._id;
