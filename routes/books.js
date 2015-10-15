@@ -10,7 +10,7 @@ var _ = require('lodash');
 var Bible = require('../models/bible');
 var Book =  require('../models/book');
 var Chapter = require('../models/chapter');
-var Verse = require('../models/verses');
+var Verse = require('../models/verse');
 
 
 // Bible Book Routes
@@ -48,6 +48,7 @@ router.route('/bibles/:bible_id/books').post(function(req, res){
                     _.forEach(versesChapter, function(verseValue, verseKey){
                         var newVerse = Verse();
                         if( verseKey != 'footnotes') {
+                            newVerse.verseNumber = verseKey;
                             newVerse.verse = verseValue;
                             newVerse.bookId = req.body.bookId;
                             newVerse.chapterId = newChapter._id;
@@ -250,6 +251,7 @@ router.route('/bibles/:bible_id/books/:bookId').put( function(req, res) {
                                 }
                                 //console.log(verseExist['verse']);
                                 if (verseExist == null) {
+                                    newVerse.verseNumber = verseKey;
                                     newVerse.verse = verseValue;
                                     newVerse.bookId = req.params.bookId;
                                     newVerse.chapterId = newChapter._id;

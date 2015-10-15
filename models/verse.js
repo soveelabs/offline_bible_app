@@ -2,11 +2,12 @@
 var mongoose = require('mongoose');
 
 // Schema
-var versesSchema = new mongoose.Schema({
+var verseSchema = new mongoose.Schema({
+    verseNumber: String,
     verse: String,
     chapterId: String,
     bookId: String
 });
 
 // Return model
-module.exports = mongoose.model('Verses', versesSchema);
+module.exports = mongoose.model('Verse', verseSchema);

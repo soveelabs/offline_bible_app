@@ -9,7 +9,7 @@ var _ = require('lodash');
 var Bible = require('../models/bible');
 var Book =  require('../models/book');
 var Chapter = require('../models/chapter');
-var Verse = require('../models/verses');
+var Verse = require('../models/verse');
 
 // Gateway Language Bible Routes
 
@@ -35,7 +35,7 @@ router.route('/bibles').post(function(req, res){
       newBible.bibleUrl = req.body.bibleUrl;
 
       request("https://parallel-api.cloud.sovee.com/usx?url=" + req.body.bibleUrl, function (error, response, body) {
-        console.log("i am here at top");
+        
         if (!error && response.statusCode == 200) {
            
             var resJson = JSON.parse(body); // Print the google web page.
@@ -62,6 +62,7 @@ router.route('/bibles').post(function(req, res){
                         _.forEach(versesChapter, function(verseValue, verseKey){
                             var newVerse = Verse();
                             if( verseKey != 'footnotes') {
+                                newVerse.verseNumber = verseKey;
                                 newVerse.verse = verseValue;
                                 newVerse.bookId = req.body.bookId;
                                 newVerse.chapterId = newChapter._id;
@@ -105,8 +106,6 @@ router.route('/bibles').post(function(req, res){
             
         } else if(!error) {
           console.log(error);
-          console.log("i am in else");
-          console.log(body);
           return res.send(error);
         }
           console.log("i am here bottom");
