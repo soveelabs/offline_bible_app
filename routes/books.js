@@ -21,7 +21,7 @@ router.route('/bibles/:bible_id/books').post(function(req, res){
   console.log(req.body); // Check the request body on console
   var newChapIds = [];
 
-  request("https://parallel-api.cloud.sovee.com/usx?url=" + req.body.url, function (error, response, body) {
+  request("https://parallel-api.sovee.com/usx?url=" + req.body.url, function (error, response, body) {
     
     if (!error && response.statusCode == 200) {
        
@@ -199,7 +199,7 @@ router.route('/bibles/:bible_id/books/:bookId').put( function(req, res) {
   console.log(req.body); // Check the request body on console
   var newChapIds = [];
 
-  request("https://parallel-api.cloud.sovee.com/usx?url=" + req.body.url, function (error, response, body) {
+  request("https://parallel-api.sovee.com/usx?url=" + req.body.url, function (error, response, body) {
     
     if (!error && response.statusCode == 200) {
        

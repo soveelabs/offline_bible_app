@@ -59,7 +59,7 @@ router.route('/bibles/:bible_id/books/:book_id/chapters').post(function(req, res
 				    json['version'] = selBible.version;
 				    json['langCode'] = selBible.langCode;
 				    json['bookId'] = bookId;
-				    request("https://parallel-api.cloud.sovee.com/usx?url=" + inputChapterUrl, function (error, response, body) {
+				    request("https://parallel-api.sovee.com/usx?url=" + inputChapterUrl, function (error, response, body) {
 					if (!error && response.statusCode == 200) {
 					    var resJson = JSON.parse(body);
 					    resJson.forEach(function(books){
@@ -176,7 +176,7 @@ router.route('/bibles/:bible_id/books/:book_id/chapters/:chapter_id').put( funct
     var iterateChapters = function(inputChapter, callback) {
 	var inputChapterNum = inputChapter.chapter;
 	if (chapterId == inputChapterNum) {
-	    request("https://parallel-api.cloud.sovee.com/usx?url=" + inputUrl, function (error, response, body) {
+	    request("https://parallel-api.sovee.com/usx?url=" + inputUrl, function (error, response, body) {
 		if (!error && response.statusCode == 200) {
 		    var resJson = JSON.parse(body);
 		    resJson.forEach(function(books){

@@ -34,7 +34,7 @@ router.route('/bibles').post(function(req, res){
       newBible.langCode = req.body.langCode;
       newBible.bibleUrl = req.body.bibleUrl;
 
-      request("https://parallel-api.cloud.sovee.com/usx?url=" + req.body.bibleUrl, function (error, response, body) {
+      request("https://parallel-api.sovee.com/usx?url=" + req.body.bibleUrl, function (error, response, body) {
         
         if (!error && response.statusCode == 200) {
            
