@@ -19,7 +19,27 @@ var Verse = require('../models/verse');
 router.route('/bibles/:bible_id/books').post(function(req, res){
   
   console.log(req.body); // Check the request body on console
-  var newChapIds = [];
+  var newChapIds = []; var newReqBody = {};
+
+  var firstIndex = 0;
+  for (var key in req.body) {
+    
+    if (req.body.hasOwnProperty(key)) {
+        item = req.body[key];
+        item.forEach(function(bookReq){
+            if (firstIndex == 0) {
+                newReqBody.bookId = bookReq['bookId'];
+                newReqBody.url = bookReq['url'];
+            }firstIndex++;
+        });
+    }
+   
+  }
+  
+  req.body = newReqBody;
+
+  console.log("Processed request body url" + req.body.url);
+  console.log("Processed request body bookId" + req.body.bookId);
 
   request("https://parallel-api.sovee.com/usx?url=" + req.body.url, function (error, response, body) {
     
@@ -67,7 +87,6 @@ router.route('/bibles/:bible_id/books').post(function(req, res){
         
     }else if(!error) {
           console.log(error);
-          console.log("i am in else");
           console.log(body);
           return res.send(error);
         }
