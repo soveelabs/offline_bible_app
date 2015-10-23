@@ -2,9 +2,21 @@
 * Node/ NPM
 * MongoDB
 
-#### Install
-* npm install
-* node server.js
+#### Setup
+* Make Sure you have docker-compose setup
+```
+docker-compose build
+docker-compose run app npm install
+docker-compose up
+```
 
-#### [Show](https://github.com/soveelabs/offline_bible_app/wiki/Test-Offline-Bible-App-on-your-local) me the steps to setup.
+#### Note
+* To see which port your app is running on run
+```
+docker-compose ps
+``` 
 
+#### Testing
+```
+docker-compose run app npm test
+```
