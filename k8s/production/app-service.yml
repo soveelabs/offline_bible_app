@@ -1,12 +1,12 @@
 apiVersion: v1
 kind: Service
 metadata:
-  name: offline-bible-app     # Name of the services
+  name: bible-app     # Name of the services
 spec:
   ports:
     - port: 80           # Port you want the public to use to access it
       targetPort: 3000   # Port your container will be listening on
   selector:              # Selectors for choosing which pods can handle requests for this service
-    name: offline-bible-app
+    name: bible-app
     environment: production
     role: app

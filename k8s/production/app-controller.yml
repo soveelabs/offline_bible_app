@@ -1,18 +1,18 @@
 apiVersion: v1
 kind: ReplicationController
 metadata:
-  name: offline-bible-app-v1.0.0  # Name of the RC
+  name: bible-app-v1.0.0  # Name of the RC
 spec:
   replicas: 3                # How many copies of your pod you want to run
   selector:                  # Set of selectors for matching pods this RC should maintain
-    name: offline-bible-app
+    name: bible-app
     environment: production
     role: app
     deployment: v1.0.0
   template:                  # Pod template to use when this RC creates pods
     metadata:
       labels:                # Labels to use for the pods created by this RC
-        name: offline-bible-app
+        name: bible-app
         environment: production
         role: app
         deployment: v1.0.0
@@ -22,7 +22,7 @@ spec:
         - name: dockerhubkey
       containers:                        # List of containser in this pod
         - name: app                      # Name of the container
-          image: sovee/offline-bible-app:v1.0.0          # Image to use for the container
+          image: sovee/bible-app:v1.0.0          # Image to use for the container
           command:                       # Command to execute when starting the container (Not needed if you have a CMD in your Dockerfile instead)
             - nodemon
             - app.js
@@ -34,11 +34,11 @@ spec:
             - name: AUTH_HOST
               value: "http://auth" 
             - name: DB_HOST
-              value: 'offline-bible-app.cyix5mbukl1b.us-east-1.rds.amazonaws.com'
+              value: 'bible-app.cyix5mbukl1b.us-east-1.rds.amazonaws.com'
             - name: DB_NAME
-              value: 'offline-bible-app-data'
+              value: 'bible-app-data'
             - name: DB_USER
-              value: 'offline-bible-app'
+              value: 'bible-app'
             - name: DB_PASS
               value: '0cc36adff87b434a841c7e8d7cccc702'
             - name: DB_PORT
