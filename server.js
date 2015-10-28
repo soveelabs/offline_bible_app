@@ -4,9 +4,10 @@ var express = require('express');
 var mongoose = require('mongoose');
 var bodyParser = require('body-parser');
 var session = require('express-session');
+var config = require('config');
 
 // MongoDB
-mongoose.connect('mongodb://db/bible_app');
+mongoose.connect('mongodb://' + process.env.DB_HOST + '/' + process.env.DB_NAME);
 
 // Express
 var app = express();

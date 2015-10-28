@@ -25,7 +25,7 @@ spec:
           image: sovee/bible-api:latest          # Image to use for the container
           command:                       # Command to execute when starting the container (Not needed if you have a CMD in your Dockerfile instead)
             - nodemon
-            - app.js
+            - server.js
           ports:                         # List of ports your app will use
             - name: app                  # Name for the port (Not required if there is only 1 port)
               containerPort: 3000        # Port your app will listen on
@@ -38,7 +38,7 @@ spec:
             - name: DB_NAME
               value: 'bibleapi'
             - name: DB_USER
-              value: 'bible-api'
+              value: 'firma8'
             - name: DB_PASS
               value: 'b76315eda9e149d5b4bf6c5f725f4278'
             - name: DB_PORT
