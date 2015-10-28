@@ -7,7 +7,7 @@ var session = require('express-session');
 var config = require('config');
 
 // MongoDB
-mongoose.connect('mongodb://' + process.env.DB_HOST + '/' + process.env.DB_NAME);
+mongoose.connect(config.get('mongo.uri'));
 
 // Express
 var app = express();

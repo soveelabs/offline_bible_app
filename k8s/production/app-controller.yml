@@ -34,12 +34,12 @@ spec:
             - name: AUTH_HOST
               value: "http://auth" 
             - name: DB_HOST
-              value: 'bible-api.cyix5mbukl1b.us-east-1.rds.amazonaws.com'
-            - name: DB_NAME
-              value: 'bibleapi'
-            - name: DB_USER
-              value: 'firma8'
-            - name: DB_PASS
+            value: 'c457.candidate.55.mongolayer.com:10457,candidate.54.mongolayer.com:10342,candidate.55.mongolayer.com:10457'
+            - name: DB_DATABASE
+              value: 'bible-api'
+            - name: DB_USERNAME
+              value: 'bible-api-data'
+            - name: DB_PASSWORD
               value: '0cc36adff87b434a841c7e8d7cccc702'
-            - name: DB_PORT
-              value: '3306'
+            - name: DB_REPLICA_SET
+              value: 'set-5630eec9e66bf67594001734'
