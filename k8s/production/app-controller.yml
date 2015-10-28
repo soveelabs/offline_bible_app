@@ -36,7 +36,7 @@ spec:
             - name: DB_HOST
               value: 'bible-api.cyix5mbukl1b.us-east-1.rds.amazonaws.com'
             - name: DB_NAME
-              value: 'bible-api-data'
+              value: 'bibleapi'
             - name: DB_USER
               value: 'bible-api'
             - name: DB_PASS
