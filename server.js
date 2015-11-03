@@ -23,7 +23,9 @@ app.use('/api', require('./routes/books'));
 
 app.use('/api', require('./routes/translation'));
 
-app.use(session({secret: 'MY_SECRET'}));
+app.use('/api', require('./routes/exporter'));
+
+app.use(session({secret: 'MY_SECRET',  resave: true, saveUninitialized: true}));
 
 // Start server
 app.listen(3000);
