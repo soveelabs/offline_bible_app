@@ -7,8 +7,7 @@ app:
     - ':3000'
   environment:
     AUTH_HOST: https://staging-auth.sovee.com
-    DB_HOST: db
-    DB_DATABASE: bible-api
+    DB_HOST: db 
   links:
     - db
     - redis
