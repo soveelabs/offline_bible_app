@@ -23,7 +23,3 @@ app.use('/api', require('./routes/chapters'));
 app.use('/api', require('./routes/books'));
 
 app.use('/api', require('./routes/translation'));
-
-// Start server
-app.listen(3000);
-console.log('Offline Bible APP is running');
