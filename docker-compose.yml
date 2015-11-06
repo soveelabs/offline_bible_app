@@ -7,7 +7,9 @@ app:
     - ':3000'
   environment:
     AUTH_HOST: https://staging-auth.sovee.com
+    AUTH_TOKEN: fe56002db2632cd72daff4ac496aac1cfec7577b 
     DB_HOST: db 
+    PARALLEL_HOST: https://staging-parallel-api.sovee.com
   links:
     - db
     - redis

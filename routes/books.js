@@ -42,14 +42,14 @@ router.route('/bibles/:bible_id/books').post(function(req, res){
   console.log("Processed request body bookId" + req.body.bookId);
 
     request({
-          url: "https://staging-parallel-api.sovee.com/usx?url=" + req.body.bibleUrl, //URL to hit
+          url: process.env.PARALLEL_HOST + "/usx?url=" + req.body.bibleUrl, //URL to hit
           headers: { //We can define headers too
-              'Authorization': "Token token=fe56002db2632cd72daff4ac496aac1cfec7577b"
+              'Authorization': "Token token=" + process.env.AUTH_TOKEN
           }
     }, function (error, response, body) {
     
     if (!error && response.statusCode == 200) {
-       
+
         var resJson = JSON.parse(body); // Print the google web page.
 
         resJson.forEach(function(books){
@@ -224,9 +224,9 @@ router.route('/bibles/:bible_id/books/:bookId').put( function(req, res) {
   var newChapIds = [];
 
     request({
-          url: "https://staging-parallel-api.sovee.com/usx?url=" + req.body.bibleUrl, //URL to hit
+          url: process.env.PARALLEL_HOST + "/usx?url=" + req.body.bibleUrl, //URL to hit
           headers: { //We can define headers too
-              'Authorization': "Token token=fe56002db2632cd72daff4ac496aac1cfec7577b"
+              'Authorization': "Token token=" + process.env.AUTH_TOKEN
           }
     }, function (error, response, body) {
     
