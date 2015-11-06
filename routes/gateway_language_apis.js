@@ -34,7 +34,12 @@ router.route('/bibles').post(function(req, res){
       newBible.langCode = req.body.langCode;
       newBible.bibleUrl = req.body.bibleUrl;
 
-      request("https://parallel-api.sovee.com/usx?url=" + req.body.bibleUrl, function (error, response, body) {
+      request({
+          url: "https://staging-parallel-api.sovee.com/usx?url=" + req.body.bibleUrl, //URL to hit
+          headers: { //We can define headers too
+              'Authorization': "Token token=fe56002db2632cd72daff4ac496aac1cfec7577b"
+          }
+      }, function (error, response, body) {
         
         if (!error && response.statusCode == 200) {
            
