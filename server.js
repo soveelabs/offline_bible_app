@@ -23,3 +23,4 @@ app.use('/api', require('./routes/chapters'));
 app.use('/api', require('./routes/books'));
 
 app.use('/api', require('./routes/translation'));
+exports = module.exports = app;
