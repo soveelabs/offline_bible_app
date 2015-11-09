@@ -1,6 +1,6 @@
 app:
   build: .
-  command: nodemon server.js
+  command: nodemon bin/www.js
   volumes:
     - .:/usr/src/app
   ports:
