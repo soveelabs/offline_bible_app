@@ -41,4 +41,35 @@ describe('bibles', function() {
 
   });
 
+  describe('post /bibles', function() {
+    
+    it('requires authentication', function(done) {
+      request(app)
+        .post('/api/bibles')
+        .accept('json')
+        .expect(401, done);
+    });
+
+    it('creates a bible', function(done) {
+      request(app)
+        .post('/api/bibles')
+        .set('Authorization', 'Token token=' + process.env.AUTH_TOKEN)
+        .accept('json')
+        .send({"bibleId":"hin-dev","version":"Hindi Standard Version", "langCode":"hin", "bibleUrl":"https://s3.amazonaws.com/firma8-parallel/Test+Data/sample_usx.xml"})
+        .expect(201)
+        .end(function(err, res) {
+          if (err) { return done(err);}
+          Bible.findOne({bibleId: 'hin-dev'}, function(err, bible) {
+            if (err) { return done(err); }
+            expect(bible).to.have.property('bibleId', 'hin-dev');
+            expect(bible).to.have.property('version', 'Hindi Standard Version');
+            expect(bible).to.have.property('langCode', 'hin');
+            expect(bible).to.have.property('bibleUrl', 'https://s3.amazonaws.com/firma8-parallel/Test+Data/sample_usx.xml');
+            return done();
+          });
+        });
+    });
+
+  });
+
 });
