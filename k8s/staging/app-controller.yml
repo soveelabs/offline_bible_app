@@ -22,10 +22,10 @@ spec:
         - name: dockerhubkey
       containers:                        # List of containser in this pod
         - name: app                      # Name of the container
-          image: sovee/bible-api:latest          # Image to use for the container
+          image: sovee/bible-api:v1.0.1          # Image to use for the container
           command:                       # Command to execute when starting the container (Not needed if you have a CMD in your Dockerfile instead)
-            - nodemon
-            - server.js
+            - npm
+            - start
           ports:                         # List of ports your app will use
             - name: app                  # Name for the port (Not required if there is only 1 port)
               containerPort: 3000        # Port your app will listen on
