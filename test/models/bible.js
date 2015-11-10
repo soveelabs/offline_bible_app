@@ -20,7 +20,7 @@ describe('Bible', function() {
         done();
       });
     });
-    
+
     it('finds one matching bible', function(done) {
       Bible.findOne({bibleId: '123abc'}, function(err, res){ 
         expect(err).to.not.exist;

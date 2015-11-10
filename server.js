@@ -4,6 +4,7 @@ var express = require('express');
 var mongoose = require('mongoose');
 var bodyParser = require('body-parser');
 var config = require('config');
+var auth = require('./models/auth');
 
 // MongoDB
 console.log(config.get('mongo.uri'));
@@ -13,6 +14,8 @@ mongoose.connect(config.get('mongo.uri'));
 var app = express();
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(bodyParser.json());
+
+app.use(auth.authenticate);
 
 // Routes
 

@@ -138,7 +138,7 @@ router.route('/bibles').get(function(req, res) {
     if (err) {
       return res.send(err);
     }
-    res.json(bibles);
+    res.status(200).json(bibles);
   });
 });
 

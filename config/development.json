@@ -1,7 +1,0 @@
-{
-  "db": "localhost/bible_app",
-  "emailer": {
-    "from": "rahul.samaddar@jktech.com"
-  },
-  "rootURL": "http://localhost:3000"
-}
