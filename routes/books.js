@@ -162,7 +162,7 @@ router.route('/bibles/:bible_id/books').get(function(req, res) {
     
     Bible.findOne({'bibleId':bibleId}, function(err, bibles) {
         if (err) {
-            return res.send(err);
+            return res.status(404).send(err);
         }
         jsonRes['version'] = bibles['version'];
         jsonRes['langCode'] = bibles['langCode'];

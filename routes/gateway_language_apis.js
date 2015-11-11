@@ -28,7 +28,7 @@ router.route('/bibles').post(function(req, res){
       var newBible = new Bible();
       var count = 1;
 
-      console.log(req.body);
+//      console.log(req.body);
       newBible.bibleId = req.body.bibleId;
       newBible.version = req.body.version;
       newBible.langCode = req.body.langCode;
@@ -44,7 +44,7 @@ router.route('/bibles').post(function(req, res){
         if (!error && response.statusCode == 200) {
            
             var resJson = JSON.parse(body); // Print the google web page.
-            console.log( "i am inside if " + body);
+//            console.log( "i am inside if " + body);
 
             resJson.forEach(function(books){
               
@@ -82,7 +82,7 @@ router.route('/bibles').post(function(req, res){
                 });
 
                 //bookCreate(keys[0].trim());
-                console.log(newChapIds);
+//                console.log(newChapIds);
                 var newBook = new Book();
                 newBook.bookName = keys[0].trim();
                 newBook.bibleId = req.body.bibleId;
@@ -109,11 +109,11 @@ router.route('/bibles').post(function(req, res){
                 });
               }count++;
             
-        } else if(!error) {
-          console.log(error);
+        } else if(error) {
+//          console.log(error);
           return res.send(error);
         }
-          console.log("i am here bottom");
+//          console.log("i am here bottom");
       });
 
    } else if (!err) {
@@ -149,10 +149,7 @@ router.route('/bibles/:bible_id').put( function(req, res) {
     
   Bible.findOne({'bibleId':bibleId}, function(err, bible) {
     if (!err && bible) {
-      bible.bibleId = bibleId;
       bible.version = req.body.version;
-      bible.bibleId = req.body.bibleId;
-      bible.bibleUrl = req.body.bibleUrl;
       bible.langCode = req.body.langCode;
 
       bible.save(function(err) {
