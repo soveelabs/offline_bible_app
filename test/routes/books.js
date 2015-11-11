@@ -72,9 +72,10 @@ describe('books', function() {
 
 
     describe('post /books', function() {
+	this.timeout(5000);
 	it('requires authentication', function(done) {
 	    request(app)
-		.post('/api/bibles/eng-asv/books')
+		.post('/api/bibles/en-asv/books')
 		.accept('json')
 		.expect(401, done);
 	});
@@ -113,9 +114,9 @@ describe('books', function() {
 			expect(book).to.have.property('bookName', 'Acts');
 			expect(book).to.have.property('bookId', 'Acts');
 			expect(book).to.have.property('url', 'http://operationagape.com/soveetest/Acts.xml');
-			expect(book).to.have.property(chapters);
+			expect(book).to.have.property('chapters');
+			return done();			
 		    });
-//		    console.log(res.body);
 		});
 	});	
     });

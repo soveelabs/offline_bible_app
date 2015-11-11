@@ -29,8 +29,7 @@ describe('bibles', function() {
         .accept('json')
         .expect(200)
         .end(function(err, res) {
-          if (err) { console.log('and now '+res.body[0]); return done(err); }
-	    console.log('and now '+res.body[0])
+          if (err) { done(err); }
           expect(res.body.length).to.equal(1);
           expect(res.body[0]).to.have.property('bibleId', '123');
           expect(res.body[0]).to.have.property('version', '2');
@@ -74,7 +73,7 @@ describe('bibles', function() {
   });
 
   describe('put /bibles', function() {
-    
+    this.timeout(4000);
     it('requires authentication', function(done) {
       request(app)
         .post('/api/bibles')

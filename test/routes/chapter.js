@@ -16,14 +16,14 @@ describe('chapter', function() {
     };
     
     var validChapterArgs = {
-	bookId: '1',
+	bookId: 'John',
 	chapter: '3',
 	url: 'http://bar.xml'
     };
     
     var validBookArgs = {
 	bookName: 'John',
-	bookId: '1',
+	bookId: 'John',
 	bibleId: 'eng-asv',
 	url: 'http://foo.xml'
     };
@@ -65,6 +65,14 @@ describe('chapter', function() {
 		.accept('json')
 		.expect(401, done);
 	});
+
+	it('fails for inexistent bibleId', function(done){
+	    request(app)
+		.get('/api/bibles/inexistentBibleId/books/bookid/chapters')
+	        .set('Authorization', 'Token token=' + process.env.AUTH_TOKEN)
+		.accept('json')
+		.expect(404, done);
+	});
 	
 	it('lists the chapters in the db', function(done) {
 	    request(app)
@@ -92,7 +100,7 @@ describe('chapter', function() {
 		var translatedBible = new TranslatedBible(validTranslatedBibleArgs);
 		translatedBible.save(function(transErr, transBible){
 		    var chapter = new Chapter(validChapterArgs);
-		    chapter.translations.push({bibleId: translatedBible._id, url: 'http://translatedBible.bar'});
+		    chapter.translations.push({bibleId: translatedBible._id, url: 'http://translatedBible.foo'});
 		    chapter.save(function(chapterErr, chapt) {
 			if (chapterErr) { return done(chapterErr); }
 			var book = new Book(validBookArgs);
@@ -119,6 +127,7 @@ describe('chapter', function() {
 	    });
 
 	    it('creates a chapter', function(done) {
+		this.timeout(4000);
 		request(app)
 		    .post('/api/bibles/eng-asv/books/John/chapters')
 		    .set('Authorization', 'Token token=' + process.env.AUTH_TOKEN)
@@ -133,10 +142,14 @@ describe('chapter', function() {
 		    })
 		    .expect(201)
 		    .end(function(err, res) {
-			console.log('here alright');
-			if (err) { console.log(res); return done(err);}
-			console.log(res);
-			return done();
+			if (err) { return done(err);}
+			Chapter.findOne({bookId:'John', chapter: '2'}, function(err, chapter){
+			    expect(chapter).to.have.property('chapter','2');
+			    expect(chapter).to.have.property('bookId','John');
+			    expect(chapter).to.have.property('url','http://operationagape.com/soveetest/John_chapter_2.xml');
+			    expect(chapter).to.have.property('translations');
+			    return done();
+			});
 		    });
 	    });
 	});
