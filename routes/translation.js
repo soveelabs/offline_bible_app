@@ -166,6 +166,7 @@ router.route('/bibles/:bible_id/books/:book_id/chapters/:chapter_id/translations
     bookId = req.params.book_id;
     chapterId = req.params.chapter_id;
     translatedBibleId = req.params.translated_bible_id;
+    inputUrl = req.body.url;
     var foundFlag = false;
     var json = {};
     json['bibleId'] = bibleId;
@@ -194,7 +195,16 @@ router.route('/bibles/:bible_id/books/:book_id/chapters/:chapter_id/translations
 				    var transJson = {}
 				    value.translations.forEach(function(transUnit){
 					if(transUnit.bibleId.bibleId == translatedBibleId) {
-					    //TODO: Allow user to update URL. Verify if this user has checked out.
+					    foundFlag = true;
+					    transUnit.url = inputUrl;
+					    transUnit.save(function(transErr){
+						if (transErr){
+						    return res.status(500).json({
+							message:'Unable to save changes. Try again.'
+						    });
+						}
+					    });
+					//TODO: Verify if this user has checked out.
 					transJson = {}
 					transJson['bibleId'] = transUnit.bibleId.bibleId;
 					transJson['version'] = transUnit.bibleId.version;

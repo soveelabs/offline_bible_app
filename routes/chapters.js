@@ -67,8 +67,8 @@ router.route('/bibles/:bible_id/books/:book_id/chapters').post(function(req, res
 				    json['langCode'] = selBible.langCode;
 				    json['bookId'] = bookId;
 				    request({
-          				url: process.env.PARALLEL_HOST + "/usx?url=" + inputChapterUrl, //URL to hit
-          				headers: { //We can define headers too
+          				url: process.env.PARALLEL_HOST + "/usx?url=" + inputChapterUrl,
+          				headers: {
               				'Authorization': "Token token=" + process.env.AUTH_TOKEN
           				}
       				}, function (error, response, body) {
@@ -200,8 +200,8 @@ router.route('/bibles/:bible_id/books/:book_id/chapters/:chapter_id').put( funct
 	var inputChapterNum = inputChapter.chapter;
 	if (chapterId == inputChapterNum) {
 		request({
-          url: process.env.PARALLEL_HOST + "/usx?url=" + req.body.bibleUrl, //URL to hit
-          headers: { //We can define headers too
+          url: process.env.PARALLEL_HOST + "/usx?url=" + inputUrl,
+          headers: {
               'Authorization': "Token token=" + process.env.AUTH_TOKEN
           }
       	}, function (error, response, body) {
