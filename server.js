@@ -3,15 +3,19 @@
 var express = require('express');
 var mongoose = require('mongoose');
 var bodyParser = require('body-parser');
-var session = require('express-session');
+var config = require('config');
+var auth = require('./models/auth');
 
 // MongoDB
-mongoose.connect('mongodb://db/bible_app');
+console.log(config.get('mongo.uri'));
+mongoose.connect(config.get('mongo.uri'));
 
 // Express
 var app = express();
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(bodyParser.json());
+
+app.use(auth.authenticate);
 
 // Routes
 
@@ -27,6 +31,8 @@ app.use('/api', require('./routes/exporter'));
 
 app.use(session({secret: 'MY_SECRET',  resave: true, saveUninitialized: true}));
 
-// Start server
 app.listen(3000);
+
 console.log('Offline Bible APP is running');
+
+exports = module.exports = app;

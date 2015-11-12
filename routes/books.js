@@ -18,7 +18,6 @@ var Verse = require('../models/verse');
 // CREATE  Bible Books
 router.route('/bibles/:bible_id/books').post(function(req, res){
   
-  console.log(req.body); // Check the request body on console
   var newChapIds = []; var newReqBody = {};
 
   var firstIndex = 0;
@@ -38,13 +37,18 @@ router.route('/bibles/:bible_id/books').post(function(req, res){
   
   req.body = newReqBody;
 
-  console.log("Processed request body url" + req.body.url);
-  console.log("Processed request body bookId" + req.body.bookId);
+//  console.log("Processed request body url" + req.body.url);
+//  console.log("Processed request body bookId" + req.body.bookId);
 
-  request("https://parallel-api.sovee.com/usx?url=" + req.body.url, function (error, response, body) {
+    request({
+          url: process.env.PARALLEL_HOST + "/usx?url=" + req.body.url, //URL to hit
+          headers: { //We can define headers too
+              'Authorization': "Token token=" + process.env.AUTH_TOKEN
+          }
+    }, function (error, response, body) {
     
     if (!error && response.statusCode == 200) {
-       
+
         var resJson = JSON.parse(body); // Print the google web page.
 
         resJson.forEach(function(books){
@@ -86,8 +90,6 @@ router.route('/bibles/:bible_id/books').post(function(req, res){
         });
         
     }else if(!error) {
-          console.log(error);
-          console.log(body);
           return res.send(error);
         }
   });
@@ -123,7 +125,6 @@ function bookCreate(inputBookName) {
                             if (err) {
                                 return res.send(err);
                             }
-                            console.log(bibles);
                             //json.bible = bibles;
                                         
                             json['version'] = bibles['version'];
@@ -157,7 +158,7 @@ router.route('/bibles/:bible_id/books').get(function(req, res) {
     
     Bible.findOne({'bibleId':bibleId}, function(err, bibles) {
         if (err) {
-            return res.send(err);
+            return res.status(404).send(err);
         }
         jsonRes['version'] = bibles['version'];
         jsonRes['langCode'] = bibles['langCode'];
@@ -192,8 +193,6 @@ router.route('/bibles/:bible_id/books').get(function(req, res) {
                     objChap['chapter'] = chap['chapter'];
                     objChap['url'] = chap['url'];
                     chaJson.push(objChap);
-                    console.log(chaJson);
-                                       
                 });
             };
             obj['chapters'] = chaJson;
@@ -215,10 +214,15 @@ router.route('/bibles/:bible_id/books').get(function(req, res) {
 // UPDATE Books
 router.route('/bibles/:bible_id/books/:bookId').put( function(req, res) {
   
-  console.log(req.body); // Check the request body on console
+//  console.log(req.body); // Check the request body on console
   var newChapIds = [];
 
-  request("https://parallel-api.sovee.com/usx?url=" + req.body.url, function (error, response, body) {
+    request({
+          url: process.env.PARALLEL_HOST + "/usx?url=" + req.body.bibleUrl, //URL to hit
+          headers: { //We can define headers too
+              'Authorization': "Token token=" + process.env.AUTH_TOKEN
+          }
+    }, function (error, response, body) {
     
     if (!error && response.statusCode == 200) {
        

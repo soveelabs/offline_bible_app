@@ -1,4 +1,4 @@
-// Dependencies
+ // Dependencies
 var express = require('express');
 var router = express.Router();
 var mongoose = require('mongoose');
@@ -28,7 +28,14 @@ router.route('/bibles/:bible_id/books/:book_id/chapters').post(function(req, res
 	.populate('books')
         .exec(function (err, selBible) {
 	    if (err) {
-		return res.send(err);
+		return res.status(500).json({
+		    message: "Error processing request. " + err
+		});
+	    }
+	    if (!selBible) {
+		return res.status(404).json({
+		    message: "Could not find Bible with the given name. " + err
+		});
 	    }
 	    selBible.books.forEach(function (book) {
 		if (book.bookName == bookId) {
@@ -59,8 +66,17 @@ router.route('/bibles/:bible_id/books/:book_id/chapters').post(function(req, res
 				    json['version'] = selBible.version;
 				    json['langCode'] = selBible.langCode;
 				    json['bookId'] = bookId;
-				    request("https://parallel-api.sovee.com/usx?url=" + inputChapterUrl, function (error, response, body) {
-					if (!error && response.statusCode == 200) {
+				    request({
+          				url: process.env.PARALLEL_HOST + "/usx?url=" + inputChapterUrl,
+          				headers: {
+              				'Authorization': "Token token=" + process.env.AUTH_TOKEN
+          				}
+      				}, function (error, response, body) {
+				        if (error) {
+					    return res.status(500).json({
+						message: "Could not parse data." + error
+					    });
+					} else if (!error && response.statusCode == 200) {
 					    var resJson = JSON.parse(body);
 					    resJson.forEach(function(books){
 						//		    book = Object.keys(books)[0];
@@ -143,7 +159,14 @@ router.route('/bibles/:bible_id/books/:book_id/chapters').get(function(req, res)
 	.populate('books')
         .exec(function (err, selBible) {
 	    if (err) {
-		return res.send(err);
+		return res.status(500).json({
+		    message: "Error processing request. " + err
+		});
+	    }
+	    if (!selBible) {
+		return res.status(404).json({
+		    message: "Could not find Bible with the given name. " + err
+		});
 	    }
 	    json['version'] = selBible.version;
 	    json['langCode'] = selBible.langCode;
@@ -176,7 +199,12 @@ router.route('/bibles/:bible_id/books/:book_id/chapters/:chapter_id').put( funct
     var iterateChapters = function(inputChapter, callback) {
 	var inputChapterNum = inputChapter.chapter;
 	if (chapterId == inputChapterNum) {
-	    request("https://parallel-api.sovee.com/usx?url=" + inputUrl, function (error, response, body) {
+		request({
+          url: process.env.PARALLEL_HOST + "/usx?url=" + inputUrl,
+          headers: {
+              'Authorization': "Token token=" + process.env.AUTH_TOKEN
+          }
+      	}, function (error, response, body) {
 		if (!error && response.statusCode == 200) {
 		    var resJson = JSON.parse(body);
 		    resJson.forEach(function(books){
@@ -219,7 +247,14 @@ router.route('/bibles/:bible_id/books/:book_id/chapters/:chapter_id').put( funct
 	.populate('books')
 	.exec(function (err, selBible) {
 	    if (err) {
-		return res.send(err);
+		return res.status(500).json({
+		    message: "Error processing request. " + err
+		});
+	    }
+	    if (!selBible) {
+		return res.status(404).json({
+		    message: "Could not find Bible with the given name. " + err
+		});
 	    }
 	    selBible.books.forEach(function (book) {
 		if (book.bookName == bookId) {

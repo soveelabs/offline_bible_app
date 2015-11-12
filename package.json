@@ -4,7 +4,8 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "mocha"
+    "test": "mocha",
+    "start": "node bin/www.js"
   },
   "author": "",
   "license": "ISC",
@@ -12,6 +13,7 @@
     "async": "^1.4.2",
     "bcrypt": "^0.8.5",
     "body-parser": "^1.13.3",
+    "config": "^1.16.0",
     "express": "^4.13.3",
     "express-session": "^1.11.3",
     "lodash": "~3.10.1",
