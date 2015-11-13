@@ -33,7 +33,7 @@ spec:
             - name: AUTH_HOST
               value: "http://auth" 
             - name: DB_HOST
-            value: 'c457.candidate.55.mongolayer.com:10457,candidate.54.mongolayer.com:10342,candidate.55.mongolayer.com:10457'
+              value: 'c457.candidate.55.mongolayer.com:10457,candidate.54.mongolayer.com:10342,candidate.55.mongolayer.com:10457'
             - name: DB_DATABASE
               value: 'bible-api'
             - name: DB_USERNAME
