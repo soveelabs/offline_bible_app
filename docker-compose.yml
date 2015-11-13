@@ -6,10 +6,24 @@ app:
   ports:
     - ':3000'
   environment:
-    AUTH_HOST: https://staging-auth.sovee.com
-    AUTH_TOKEN: fe56002db2632cd72daff4ac496aac1cfec7577b 
-    DB_HOST: db 
+    AUTH_HOST: https://staging-auth.sovee.com,
+    DB_HOST: db
+    AUTH_URL: https://staging-auth.sovee.com
+    AUTH_TOKEN: 664d6eaa2015f05a81210aaa398c292d6f4bd641
+    ALCHEMY_HOST: https://alchemy.cloud.sovee.com
+    TEMP: /tmp
+    S3_KEY: AKIAJEGTNC6WJFSOSX6A
+    S3_SECRET: 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
+    S3_BUCKET: sovee-bible-app
+    PARALLEL_HOST: https://parallel-api.cloud.sovee.com
+    ALCHEMY_CUSTOMER: Sovee
+    SE_PROJECT: foo
+    SE_ASSET: bar
+    AWS_HOST: https://s3.amazonaws.com
+    AWS_ENV: development
     PARALLEL_HOST: https://staging-parallel-api.sovee.com
+    PARALLEL_AUTH_TOKEN: fe56002db2632cd72daff4ac496aac1cfec7577b 
+
   links:
     - db
     - redis

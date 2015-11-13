@@ -26,4 +26,13 @@ app.use('/api', require('./routes/chapters'));
 app.use('/api', require('./routes/books'));
 
 app.use('/api', require('./routes/translation'));
+
+app.use('/api', require('./routes/exporter'));
+
+app.use(session({secret: 'MY_SECRET',  resave: true, saveUninitialized: true}));
+
+app.listen(3000);
+
+console.log('Offline Bible APP is running');
+
 exports = module.exports = app;

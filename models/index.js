@@ -1,7 +1,7 @@
 var config = require('./../config/development');
 var mongoose = require('mongoose');
 
-mongoose.connect(config.db, {});
+//mongoose.createConnection(config.db, {});
 
 module.exports.oauth = require('./oauth');
 module.exports.User = require('./user');
