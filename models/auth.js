@@ -29,6 +29,29 @@ auth.authenticate = function(req, res, next) {
 }
 
 /**
+ * Validates API request
+ *
+ * Extracts the auth token from the authorization header
+ * and get the validate user uid
+ *
+ * @param {object} req
+ * @param {object} res
+ * @param {function} next
+ */
+auth.getUid = function(req, res, next) {
+  var token = auth.extractToken(req);
+  if (!token) { return sendError(res, 401); }
+
+  auth.getUserId(token, function(err, resp){
+      if (err) { return sendError(res, 500); }
+    
+      req.userId = resp;
+      return next();
+  });
+  
+}
+
+/**
  * Extracts an auth token from the request header
  *
  * @param {object} req
@@ -91,4 +114,29 @@ function sendError(res, code, errs) {
   if (message) { resp.error.message = message; }
   if (errs) { resp.error.errors = errs; }
   return res.status(code).send(resp);
+}
+
+/**
+ * Sends a token to Auth to validate endpoint for validation.
+ *
+ * @param {string} token
+ * @param {function} callback
+ */
+auth.getUserId = function(token, callback) {
+  var options = {
+    url: process.env.AUTH_HOST + '/auth/validate',
+    qs: { 'token': token },
+    headers: { 'Accept': 'application/json' }
+  };
+
+  request.get(options, function(err, res, body) {
+    if (err) {
+      return callback(new Error('Error communicating with auth: ', err.message), null);
+    } else if (res.statusCode != 200) {
+      return callback(new Error('Non-Success returned from auth: ' + res.statusCode), null);
+    } else {
+      var authResponse = JSON.parse(body);
+      return callback(null, authResponse['uid']);
+    }
+  });
 }

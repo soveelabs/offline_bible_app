@@ -7,6 +7,7 @@ var chapterSchema = new mongoose.Schema({
     bookId: String,
     chapter: String,
     url: String,
+    checkout: String,
     translations: [{
 	//The translated Bible ID
     	bibleId: {type: mongoose.Schema.Types.ObjectId, ref: 'TranslatedBible'}, 

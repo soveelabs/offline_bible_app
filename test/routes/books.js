@@ -119,5 +119,27 @@ describe('books', function() {
 		    });
 		});
 	});	
-    });
+
+	it('creates a book', function(done) {
+	    request(app)
+		.post('/api/bibles/en-asv/books')
+		.set('Authorization', 'Token token=' + process.env.AUTH_TOKEN)
+		.accept('json')
+		.send({
+		    books:
+		    [{
+			"bookId": "2 John",
+			"url": "http://operationagape.com/soveetest/Acts.xml"
+		    }]
+		})
+		.expect(403)
+		.end(function(err, res) {
+		    if (err) { return done(err);}
+		    	assert.equal(res, "Cannot create Book with the same Book Name.")
+			return done();			
+		    });
+		});
+	});
+
+
 });

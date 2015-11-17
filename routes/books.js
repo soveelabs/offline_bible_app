@@ -86,8 +86,48 @@ router.route('/bibles/:bible_id/books').post(function(req, res){
 
             });
 
-            bookCreate(keys[0].trim());
+            console.log("bookId: " + keys[0].trim());
+            Book.findOne({
+                bookName: {
+                  $regex: new RegExp(keys[0].trim(), "i")
+                }
+              }, function(err, book) { // Using RegEx - search is case insensitive
+                console.log(book);
+                if (!err && !book) {
+
+                    bookCreate(keys[0].trim());
+                } else if (!err) {
+
+                  // User is trying to create a Bible with a BibleId that already exists.
+                  res.status(403).json({
+                    message: "Cannot create Book with the same Book Name."
+                  });
+
+                } else {
+                  res.status(500).json({
+                    message: err
+                  });
+                }
+            });
+
         });
+
+            // console.log("bookId: " + keys[0].trim());
+            // Book.findOne({
+            //     bookName: {
+            //       $regex: new RegExp(keys[0].trim(), "i")
+            //     }
+            //   }, function(err, book) { // Using RegEx - search is case insensitive
+            //     console.log(book);
+            //     if (!err && !book) {
+
+            //         bookCreate(keys[0].trim());
+            //     } else if (!err) {
+            //       return;
+            //     }
+            // });
+
+        //});
         
     }else if(!error) {
           return res.send(error);
@@ -178,14 +218,16 @@ router.route('/bibles/:bible_id/books').get(function(req, res) {
             var obj = {};
             obj['bookId'] = oneBook['bookId'];
             //bookJsn.push(obj);
-            //console.log(oneBook['chapters'].length);
+            //console.log(oneBook);
             var chaJson = [];
-           for (var chapLen =0 ; chapLen < oneBook['chapters'].length; chapLen++) {
+           //for (var chapLen =0 ; chapLen < oneBook['chapters'].length; chapLen++) {
+            oneBook['chapters'].forEach(function(oneChapId){
             
                 var objChap = {};
+                console.log(oneChapId);
                 
                 //console.log("print id: " + oneBook['chapters'][chapLen] + "bookId" + oneBook['bookId']);
-                Chapter.findById(oneBook['chapters'][chapLen], function(err, chap) {
+                Chapter.findOne({'_id':oneChapId}, function(err, chap) {
                     if (err) {
                         return res.send(err);
                     }
@@ -193,11 +235,16 @@ router.route('/bibles/:bible_id/books').get(function(req, res) {
                     objChap['chapter'] = chap['chapter'];
                     objChap['url'] = chap['url'];
                     chaJson.push(objChap);
-                });
-            };
+                    console.log(chaJson);
+                    //console.log(objChap);
+                      // obj['chapters'] = chaJson;
+
+                });console.log(chaJson);
+
+            });
             obj['chapters'] = chaJson;
             bookJsn.push(obj);
-            //console.log(bookJsn);
+            console.log(bookJsn);
 
         });
             
