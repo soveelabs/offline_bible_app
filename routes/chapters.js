@@ -135,13 +135,16 @@ router.route('/bibles/:bible_id/books/:book_id/chapters').get(function(req, res)
     json['bibleId'] = bibleId;
     json['bookId'] = bookId;
     var chaptJsonArr = [];
-    var chaptJson = {};
-    var transJson = {};
+    //var chaptJson = {};
+    //var transJson = {};
 
     var iterateChapters = function (num, callback) {
+    	var chaptJson = {};
+    	var transJson = {};
+    	chaptJson['translations'] = [];
 	Chapter.populate(num, [{path:'translations.bibleId'}], function(chaptError, value){
 	    chaptJson['chapter'] = value.chapter;
-	    chaptJson['translations'] = [];
+	    //chaptJson['translations'] = [];
 	    value.translations.forEach(function(transUnit){
 		transJson = {};
 		transJson['bibleId'] = transUnit.bibleId.bibleId;

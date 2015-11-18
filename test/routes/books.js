@@ -102,7 +102,7 @@ describe('books', function() {
 		.send({
 		    books:
 		    [{
-			"bookId": "Acts",
+			"bookId": "John",
 			"url": "http://operationagape.com/soveetest/Acts.xml"
 		    }]
 		})
@@ -120,7 +120,7 @@ describe('books', function() {
 		});
 	});	
 
-	it('creates a book', function(done) {
+	it('unable to create a book', function(done) {
 	    request(app)
 		.post('/api/bibles/en-asv/books')
 		.set('Authorization', 'Token token=' + process.env.AUTH_TOKEN)
@@ -128,7 +128,7 @@ describe('books', function() {
 		.send({
 		    books:
 		    [{
-			"bookId": "2 John",
+			"bookId": "John",
 			"url": "http://operationagape.com/soveetest/Acts.xml"
 		    }]
 		})

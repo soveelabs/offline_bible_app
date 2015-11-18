@@ -4,6 +4,7 @@ var router = express.Router();
 
 var request = require('request');
 var _ = require('lodash');
+var async = require('async');
 
 
 // Models
@@ -86,13 +87,13 @@ router.route('/bibles/:bible_id/books').post(function(req, res){
 
             });
 
-            console.log("bookId: " + keys[0].trim());
+            //console.log("bookId: " + keys[0].trim());
             Book.findOne({
                 bookName: {
                   $regex: new RegExp(keys[0].trim(), "i")
                 }
               }, function(err, book) { // Using RegEx - search is case insensitive
-                console.log(book);
+                //console.log(book);
                 if (!err && !book) {
 
                     bookCreate(keys[0].trim());
@@ -112,23 +113,6 @@ router.route('/bibles/:bible_id/books').post(function(req, res){
 
         });
 
-            // console.log("bookId: " + keys[0].trim());
-            // Book.findOne({
-            //     bookName: {
-            //       $regex: new RegExp(keys[0].trim(), "i")
-            //     }
-            //   }, function(err, book) { // Using RegEx - search is case insensitive
-            //     console.log(book);
-            //     if (!err && !book) {
-
-            //         bookCreate(keys[0].trim());
-            //     } else if (!err) {
-            //       return;
-            //     }
-            // });
-
-        //});
-        
     }else if(!error) {
           return res.send(error);
         }
@@ -192,66 +176,69 @@ function bookCreate(inputBookName) {
 
 // LIST Bible Books
 router.route('/bibles/:bible_id/books').get(function(req, res) {
-    bibleId = req.params.bible_id;
+
+    var bibleId = req.params.bible_id;
     var jsonRes = {};
     jsonRes['bibleId'] = bibleId;
+    var finalResults = {};
     
-    Bible.findOne({'bibleId':bibleId}, function(err, bibles) {
-        if (err) {
-            return res.status(404).send(err);
-        }
-        jsonRes['version'] = bibles['version'];
-        jsonRes['langCode'] = bibles['langCode'];
-                                        
-    });
-    
-    Book.find({'bibleId':bibleId}, function(err, books) {
-        if (err) {
-            return res.send(err);
-        }
-        var i =0;
-        //console.log(books);
-        var bookJsn = []; 
+
+    var iterateChapters = function (num, callback) {
+    var chaptJson = {};
+    chaptJson['chapters'] = [];
+    Chapter.populate(num, [{path:'chapters'}], function(chaptError, value){
         
-        books.forEach(function(oneBook) {
-            //console.log(jsonRes);
-            var obj = {};
-            obj['bookId'] = oneBook['bookId'];
-            //bookJsn.push(obj);
-            //console.log(oneBook);
-            var chaJson = [];
-           //for (var chapLen =0 ; chapLen < oneBook['chapters'].length; chapLen++) {
-            oneBook['chapters'].forEach(function(oneChapId){
-            
-                var objChap = {};
-                console.log(oneChapId);
-                
-                //console.log("print id: " + oneBook['chapters'][chapLen] + "bookId" + oneBook['bookId']);
-                Chapter.findOne({'_id':oneChapId}, function(err, chap) {
-                    if (err) {
-                        return res.send(err);
-                    }
-                    //console.log(chap);
-                    objChap['chapter'] = chap['chapter'];
-                    objChap['url'] = chap['url'];
-                    chaJson.push(objChap);
-                    console.log(chaJson);
-                    //console.log(objChap);
-                      // obj['chapters'] = chaJson;
+        chapterJson = {};
+        chapterJson['chapter'] = value.chapter;
+        chapterJson['url'] = value.url;
+        chaptJson['chapters'].push(chapterJson);
+        chaptJson['bookId'] = value.bookId;
+        
+        return callback(null, chaptJson);
+    });
+    };
 
-                });console.log(chaJson);
+    var iterateBooks = function(num, callback) {
 
+        Book.populate(num, [{path:'books'}], function(chaptError, value){
+        Book.findById(value._id)
+            .populate('chapters')
+            .exec(function (bookErr, bookDoc) {
+                async.map(bookDoc.chapters, iterateChapters, function (err, results) {
+
+                return callback(null, results);
+                });
             });
-            obj['chapters'] = chaJson;
-            bookJsn.push(obj);
-            console.log(bookJsn);
-
+        
         });
+
+    }
+
+
+    Bible
+    .findOne({'bibleId':bibleId})
+    .populate('books')
+        .exec(function (err, selBible) {
+        if (err) {
+        return res.status(500).json({
+            message: "Error processing request. " + err
+        });
+        }
+        if (!selBible) {
+        return res.status(404).json({
+            message: "Could not find Bible with the given name. " + err
+        });
+        }
+        jsonRes['version'] = selBible.version;
+        jsonRes['langCode'] = selBible.langCode;
+        
+        async.map(selBible.books, iterateBooks, function (err, results) {
+
+            jsonRes['books'] = results;
             
-            jsonRes['Books'] = bookJsn;
-               
-            res.json(jsonRes);
-    
+            res.status(200).json(jsonRes);
+        });
+
     });
     
 });
