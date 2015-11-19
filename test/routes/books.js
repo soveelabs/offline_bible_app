@@ -72,7 +72,7 @@ describe('books', function() {
 
 
     describe('post /books', function() {
-	this.timeout(5000);
+	this.timeout(9000);
 	it('requires authentication', function(done) {
 	    request(app)
 		.post('/api/bibles/en-asv/books')
@@ -102,7 +102,7 @@ describe('books', function() {
 		.send({
 		    books:
 		    [{
-			"bookId": "John",
+			"bookId": "Acts",
 			"url": "http://operationagape.com/soveetest/Acts.xml"
 		    }]
 		})
@@ -128,14 +128,14 @@ describe('books', function() {
 		.send({
 		    books:
 		    [{
-			"bookId": "John",
+			"bookId": "1",
 			"url": "http://operationagape.com/soveetest/Acts.xml"
 		    }]
 		})
 		.expect(403)
 		.end(function(err, res) {
-		    if (err) { return done(err);}
-		    	assert.equal(res, "Cannot create Book with the same Book Name.")
+		    if (err) { console.log(err);}
+		       	assert.equal(res, "Cannot create Book with the same Book Name.")
 			return done();			
 		    });
 		});

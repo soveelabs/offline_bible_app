@@ -89,8 +89,8 @@ router.route('/bibles/:bible_id/books').post(function(req, res){
 
             //console.log("bookId: " + keys[0].trim());
             Book.findOne({
-                bookName: {
-                  $regex: new RegExp(keys[0].trim(), "i")
+                bookId: {
+                  $regex: new RegExp(req.body.bookId, "i")
                 }
               }, function(err, book) { // Using RegEx - search is case insensitive
                 //console.log(book);
@@ -101,7 +101,7 @@ router.route('/bibles/:bible_id/books').post(function(req, res){
 
                   // User is trying to create a Bible with a BibleId that already exists.
                   res.status(403).json({
-                    message: "Cannot create Book with the same Book Name."
+                    message: "Cannot create Book with the same BookId."
                   });
 
                 } else {
