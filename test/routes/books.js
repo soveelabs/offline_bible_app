@@ -22,14 +22,12 @@ describe('books', function() {
     };
     
     describe('get /books', function() {
-	var book_id = '1234';
       	beforeEach(function(done) {
 	    var book = new Book(validBookArgs);
 	    book.save(function(err, res) {
 		if (err) { return done(err); }
 		var bible = new Bible(validBibleArgs);
-		book_id = book._id;
-		bible.books.push(book._id);
+		bible.books.push(res._id);
 		bible.save(function(bibleErr, res) {
 		   if (bibleErr){ return done(bibleErr); }
 		    done();
@@ -47,7 +45,7 @@ describe('books', function() {
     
 	it('requires authentication', function(done) {
 	    request(app)
-		.get('/api/bibles/eng-asv/books')
+		.get('/api/bibles/en-asv/books')
 		.accept('json')
 		.expect(401, done);
 	});
@@ -63,8 +61,8 @@ describe('books', function() {
 		    expect(res.body).to.have.property('bibleId', 'en-asv');
 		    expect(res.body).to.have.property('version', 'English Developer Edition');
 		    expect(res.body).to.have.property('langCode', 'eng');
-		    expect(res.body).to.have.property('Books');
-		    expect(res.body.Books.length).to.equal(1);
+		    expect(res.body).to.have.property('books');
+		    expect(res.body.books.length).to.equal(1);
 		    return done();
 		});
 	});
@@ -120,7 +118,7 @@ describe('books', function() {
 		});
 	});	
 
-	it('unable to create a book', function(done) {
+	it('doesn\'t allow creation of a book with a duplicate name', function(done) {
 	    request(app)
 		.post('/api/bibles/en-asv/books')
 		.set('Authorization', 'Token token=' + process.env.AUTH_TOKEN)
@@ -134,12 +132,12 @@ describe('books', function() {
 		})
 		.expect(403)
 		.end(function(err, res) {
-		    if (err) { console.log(err);}
-		       	assert.equal(res, "Cannot create Book with the same Book Name.")
-			return done();			
-		    });
+		    if (err) { return done(err); }
+		    expect(res.body).to.have.property('message', "Cannot create Book with the same BookId.")
+		    return done();
 		});
 	});
+    });
 
 
 });
