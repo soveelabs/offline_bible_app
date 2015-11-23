@@ -29,12 +29,11 @@ spec:
           ports:                         # List of ports your app will use
             - name: app                  # Name for the port (Not required if there is only 1 port)
               containerPort: 3000        # Port your app will listen on
-          imagePullPolicy: Always        # Tells docker to always pull the image instead of using local cache of the image (good if your using a tag like :latest)
           env:                           # List of environment variables to set in the container
             - name: AUTH_HOST
               value: "http://auth" 
             - name: DB_HOST
-            value: 'c457.candidate.55.mongolayer.com:10457,candidate.54.mongolayer.com:10342,candidate.55.mongolayer.com:10457'
+              value: 'c457.candidate.55.mongolayer.com:10457,candidate.54.mongolayer.com:10342,candidate.55.mongolayer.com:10457'
             - name: DB_DATABASE
               value: 'bible-api'
             - name: DB_USERNAME
