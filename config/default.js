@@ -18,5 +18,17 @@ exports = module.exports = {
 
       return 'mongodb://' + uri;
     })
+  },
+  auth: {
+    host: '',
+    url: '',
+    token: ''
+  },
+  alchemy: {
+    host: ''
+  },
+  redis: {
+    host: '',
+    port: 0
   }
 }
