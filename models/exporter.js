@@ -2,7 +2,7 @@
 var express = require('express');
 var router = express.Router();
 
-var models = require('../models'),
+var models = require('./exporter'),
     modelMe = require('model-me'),
     xlsx = require('../lib/xlsx'),
     xlsxStream = require('xlsx-stream')(),
@@ -17,7 +17,7 @@ var models = require('../models'),
     s3Uploader = new s3(knox),
     request = require('request');
 
-function Exporter(data) {
+function Exporter(data) { console.log("hereeeeeeeeeeeeeeeee");
   var _data = data || {};
 
   this.book = _data.book || null;
@@ -45,7 +45,8 @@ modelMe(Exporter)
  */
 
 Exporter.execute = function execute(data, callback) {
-  Exporter.create(data, function(validationErr, createRes) {
+  console.log(data);
+    Exporter.create(data, function(validationErr, createRes) {
     if (validationErr) { return callback(validationErr); }
 
       var exporter = createRes.exporter

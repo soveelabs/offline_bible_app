@@ -15,7 +15,6 @@ app:
     S3_KEY: AKIAJEGTNC6WJFSOSX6A
     S3_SECRET: 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
     S3_BUCKET: sovee-bible-app
-    PARALLEL_HOST: https://parallel-api.cloud.sovee.com
     ALCHEMY_CUSTOMER: Sovee
     SE_PROJECT: foo
     SE_ASSET: bar
