@@ -12,6 +12,10 @@ app:
     PARALLEL_HOST: https://staging-parallel-api.sovee.com
     ALCHEMY_HOST: https://staging-alchemy.sovee.com
     ALCHEMY_AUTH_TOKEN: 664d6eaa2015f05a81210aaa398c292d6f4bd641
+    ALCHEMY_CUSTOMER: Sovee
+    S3_KEY: AKIAJEGTNC6WJFSOSX6A
+    S3_SECRET: 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
+    S3_BUCKET: sovee-bible-app
   links:
     - db
     - redis

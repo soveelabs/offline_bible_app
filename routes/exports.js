@@ -3,6 +3,8 @@ var router = express.Router();
 var request = require('request');
 var async = require('async');
 var _ = require('lodash');
+var xlsx = require('xlsx-writestream');
+var fs = require ('fs');
 
 //Models
 var Bible = require('../models/bible');
@@ -16,15 +18,32 @@ router.route('/bibles/:bible_id/books/:book_id/chapters/:chapter_id/xlsx').post(
     bibleId = req.params.bible_id;
     chapterId = req.params.chapter_id;
     bookId = req.params.book_id;
+    resJson = {};
 
     var iterateChapters = function (chapt, callback) {
+    
+    var verseStr = []; var tmpRes = {};
 	if (chapterId == chapt.chapter) {
-	    console.log('chapt is ' + chapt);
+	    //console.log('chapt is ' + chapt);
 	    Verse.find({chapterId:chapt._id}).exec(function (verseErr, verseDocs) {
-		console.log('verse is ' + verseDocs);
+		//console.log('verse is ' + verseDocs);
+		
 		verses = _.pluck(verseDocs, 'verse');
-		console.log('the verses are ' + verses);
+		//console.log('the verses are ' + verses);
+
+			verses.forEach(function(oneVerse){
+				verseStr.push(oneVerse);
+			});
+			generateSuggestions(verseStr, req.body.srcLang, req.body.trgLang, function(suggestionErr, suggestionRes) {
+          		if (suggestionErr) { return callback(suggestionErr); }
+
+          		generateXls(suggestionRes, function(xlsxErr, xlsxRes) {
+          			if (xlsxErr) { return callback(xlsxErr); }
+          			return callback(null, xlsxRes);
+			    });
+          	});
 	    });
+	    
 	}
     };
     
@@ -47,34 +66,26 @@ router.route('/bibles/:bible_id/books/:book_id/chapters/:chapter_id/xlsx').post(
 		    Book.findById(book._id)
 			.populate('chapters')
 			.exec(function (bookErr, bookDoc) {
-			    console.log('first it is' + bookDoc);
+			    //console.log('first it is' + bookDoc);
 			    async.map(bookDoc.chapters, iterateChapters, function (err, results) {
-				return res.status(200).json(json);
+					resJson = results;
+					console.log(results);
 			    });
 			});
 		}
 	    });
 	});
     
-//    generateSuggestions(
-    
-/*      models.Exporter.execute(req.body, function(executeErr, exportData) {
-        if (executeErr && executeErr.name == 'ValidationError') { return res.status(400).json(executeErr); }
-        else if (executeErr) { return res.status(500).json(executeErr); }
-        return res.status(200).json({ url: exportData.url });
-      });
-*/
-    
-    res.sendStatus(200);
+     res.status(200).json("Excel created in your current directory!");
 });
 
 
 generateSuggestions = function(sourceData, sourceLang, targetLang, callback) {
   var options = {
     url: process.env.ALCHEMY_HOST + '/text-batch',
-    qs: { texts: JSON.stringify(sourceData), from: sourceLang, to: targetLang, customer: process.env.ALCHEMY_CUSTOMER, token: process.env.AUTH_TOKEN, project: process.env.SE_PROJECT, asset: process.env.SE_ASSET }
+    qs: { texts: JSON.stringify(sourceData), from: sourceLang, to: targetLang, customer: 'Sovee', token: process.env.ALCHEMY_AUTH_TOKEN, project: process.env.SE_PROJECT, asset: process.env.SE_ASSET }
   };
-
+console.log(options);
   request.get(options, function(alchemyErr, alchemyRes, alchemyBody) {
     if (alchemyErr) { return callback(alchemyErr); }
 
@@ -88,7 +99,15 @@ generateSuggestions = function(sourceData, sourceLang, targetLang, callback) {
   });
 }
 
+generateXls = function(sourceData, callback) {
 
+	console.log("xls function called");
+
+	xlsx.write('translations.xlsx', sourceData, function (err) {
+	    // Error handling here
+	});
+	return callback(null, "translations.xlsx");
+}
 
 // Return router
 module.exports = router;
