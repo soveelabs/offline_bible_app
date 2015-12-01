@@ -48,6 +48,20 @@ router.route('/bibles').post(function(req, res){
 
             resJson.forEach(function(books){
               
+                var bookMetadata = ""; 
+                var info = _.pluck(books, 'info');
+                info.forEach(function(bookInfo){
+                  
+                  bookInfo.forEach(function(oneBookInfo){
+
+                    if(oneBookInfo.type) {
+                      var tempTxt = oneBookInfo.type + ":" + oneBookInfo.text + ",";
+                      bookMetadata = bookMetadata + tempTxt;
+                    }
+
+                  });
+                });
+
 
                 keys = Object.keys(books);
                 var verses = _.pluck(books, 'chapters');
@@ -89,6 +103,10 @@ router.route('/bibles').post(function(req, res){
                 newBook.bookId = keys[0].trim();
                 //newBook.url = req.body.url;
                 newBook.chapters = newChapIds;
+                
+                bookMetadata = bookMetadata.substring(0, bookMetadata.length - 1);
+                console.log(bookMetadata);
+                newBook.metadata = bookMetadata;
              
                 newBible.books.push(newBook._id); //Saving ref of books to Bible model.
           
