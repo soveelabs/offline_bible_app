@@ -46,15 +46,15 @@ router.route('/bibles/:bible_id/books/:book_id/chapters/:chapter_id/xlsx').post(
 
               uploadXls(xlsxRes, function(uploadErr, uploadRes) {
                 if (uploadErr) { return callback(uploadErr); }
-                //return callback(null, uploadRes);
-                return res.status(200).json({url : uploadRes});
+                return callback(null, uploadRes);
+                
               });
 
             });
 
           });
         });
-	      callback(true);
+
       }
     };
     
@@ -78,13 +78,15 @@ router.route('/bibles/:bible_id/books/:book_id/chapters/:chapter_id/xlsx').post(
 			     .populate('chapters')
 			     .exec(function (bookErr, bookDoc) {
 			       //console.log('first it is' + bookDoc);
-			       async.map(bookDoc.chapters, iterateChapters, function (err, results) {});
+			       async.map(bookDoc.chapters, iterateChapters, function (err, results) {
+              //return res.status(200).json({url : results});
+             });
 			     });
 		    }
 	    });
 	});
 
-     //return res.status(200).json(resJson);
+     return res.status(200).json("File Created on your local and uloaded too!");
 });
 
 
