@@ -16,6 +16,8 @@ app:
     S3_KEY: AKIAJEGTNC6WJFSOSX6A
     S3_SECRET: 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
     S3_BUCKET: sovee-bible-app
+    AWS_HOST: https://s3.amazonaws.com
+    AWS_ENV: development
   links:
     - db
     - redis
