@@ -23,12 +23,11 @@ router.route('/bibles').post(function(req, res){
   }, function(err, bible) { // Using RegEx - search is case insensitive
     if (!err && !bible) {
       
-      var newChapIds = [];
+      //var newChapIds = [];
 
       var newBible = new Bible();
       var count = 1;
 
-//      console.log(req.body);
       newBible.bibleId = req.body.bibleId;
       newBible.version = req.body.version;
       newBible.langCode = req.body.langCode;
@@ -44,21 +43,18 @@ router.route('/bibles').post(function(req, res){
         if (!error && response.statusCode == 200) {
            
             var resJson = JSON.parse(body); // Print the google web page.
-//            console.log( "i am inside if " + body);
 
             resJson.forEach(function(books){
               
-                var bookMetadata = ""; 
+                var bookMetadata = []; 
                 var info = _.pluck(books, 'info');
                 info.forEach(function(bookInfo){
                   
                   bookInfo.forEach(function(oneBookInfo){
-
-                    if(oneBookInfo.type) {
-                      var tempTxt = oneBookInfo.type + ":" + oneBookInfo.text + ",";
-                      bookMetadata = bookMetadata + tempTxt;
-                    }
-
+                   
+                      var tempTxt = {};
+                      tempTxt[oneBookInfo.text] = oneBookInfo.type;
+                      bookMetadata.push(tempTxt);
                   });
                 });
 
@@ -66,6 +62,7 @@ router.route('/bibles').post(function(req, res){
                 keys = Object.keys(books);
                 var verses = _.pluck(books, 'chapters');
                 var i = 0;
+                var newChapIds = [];
 
                 verses.forEach(function(versee) {
 
@@ -104,9 +101,10 @@ router.route('/bibles').post(function(req, res){
                 //newBook.url = req.body.url;
                 newBook.chapters = newChapIds;
                 
-                bookMetadata = bookMetadata.substring(0, bookMetadata.length - 1);
+                //bookMetadata = bookMetadata.substring(0, bookMetadata.length - 1);
+
                 console.log(bookMetadata);
-                newBook.metadata = bookMetadata;
+                newBook.metadata = JSON.stringify(bookMetadata);
              
                 newBible.books.push(newBook._id); //Saving ref of books to Bible model.
           
