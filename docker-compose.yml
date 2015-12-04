@@ -18,6 +18,7 @@ app:
     S3_BUCKET: sovee-bible-app
     AWS_HOST: https://s3.amazonaws.com
     AWS_ENV: development
+    TEMP: /tmp
   links:
     - db
     - redis

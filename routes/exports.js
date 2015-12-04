@@ -14,13 +14,13 @@ var Chapter =  require('../models/chapter');
 var Verse = require('../models/verse');
 
 // Export xls
-router.route('/bibles/:bible_id/books/:book_id/chapters/:chapter_id/xlsx').post(function(req, res){
+router.route('/bibles/:bible_id/books/:book_id/chapters/:chapter_id/targetlang/:trglang/xlsx').get(function(req, res){
 
     bibleId = req.params.bible_id;
     chapterId = req.params.chapter_id;
     bookId = req.params.book_id;
-    sourceLanguage = req.body.srcLang;
-    targetLanguage = req.body.trgLang;
+    var sourceLanguage;
+    targetLanguage = req.params.trglang;
     resJson = {};
     var resFlag = 0;
     var verseStr = []; var bookMetakeys = [];
@@ -39,14 +39,14 @@ router.route('/bibles/:bible_id/books/:book_id/chapters/:chapter_id/xlsx').post(
           verses.forEach(function(oneVerse){
 				    verseStr.push(oneVerse);
           });
-			
-          generateSuggestions(verseStr, req.body.srcLang, req.body.trgLang, function(suggestionErr, suggestionRes) {
+
+          generateSuggestions(verseStr, sourceLanguage, targetLanguage, function(suggestionErr, suggestionRes) {
             if (suggestionErr) { return callback(suggestionErr); }
 
-            generateXls(suggestionRes,bookMetakeys, function(xlsxErr, xlsxRes) {
+            generateXls(suggestionRes,bookMetakeys, sourceLanguage, function(xlsxErr, xlsxRes) {
               if (xlsxErr) { return callback(xlsxErr); }
 
-              uploadXls(xlsxRes, function(uploadErr, uploadRes) {
+              uploadXls(xlsxRes, sourceLanguage, function(uploadErr, uploadRes) {
                 if (uploadErr) { return callback(uploadErr); }
                 return callback(null, uploadRes);
                 
@@ -76,6 +76,7 @@ router.route('/bibles/:bible_id/books/:book_id/chapters/:chapter_id/xlsx').post(
 		      message: "Could not find Bible with the given name. " + err
 		    });
 	    }
+      sourceLanguage = selBible.langCode;
 	    selBible.books.forEach(function (book) {
 		    if (book.bookName == bookId) {
 		      Book.findById(book._id)
@@ -123,7 +124,6 @@ router.route('/bibles/:bible_id/books/:book_id/chapters/:chapter_id/xlsx').post(
 	    });
 	});
 
-    // return res.status(200).json("File Created on your local and uloaded too!");
 });
 
 
@@ -146,7 +146,7 @@ generateSuggestions = function(sourceData, sourceLang, targetLang, callback) {
   });
 }
 
-generateXls = function(sourceData, metaKeys, callback) {
+generateXls = function(sourceData, metaKeys, sourceLanguage, callback) {
 
 	console.log("Inside generateXls function"); var num = 1; var finalDta = [];
  
@@ -165,15 +165,15 @@ generateXls = function(sourceData, metaKeys, callback) {
       }
   }
   
-  xlsx.write(filename, finalDta, function (err) {
+  xlsx.write(process.env.TEMP + filename, finalDta, function (err) {
 	    if(err) {return callback(null, err);}
 	});
 	
   return callback(null, filename);
 }
 
-uploadXls = function(filename, callback) {
-  
+uploadXls = function(filename, sourceLanguage, callback) {
+
 	var client = s3.createClient({
     maxAsyncS3: 20,     // this is the default 
     s3RetryCount: 3,    // this is the default 
@@ -192,17 +192,19 @@ uploadXls = function(filename, callback) {
   var s3BucketKey = process.env.AWS_ENV + '/' + sourceLanguage + '/' + bookId + '/chapter_' + chapterId + '/' + filename;
   console.log(s3BucketKey);
   var params = {
-    localFile: filename,
+    localFile: process.env.TEMP  + filename,
  
     s3Params: {
       Bucket: process.env.S3_BUCKET,
       Key: s3BucketKey,
       ACL:'public-read'
+
       // other options supported by putObject, except Body and ContentLength. 
       // See: http://docs.aws.amazon.com/AWSJavaScriptSDK/latest/AWS/S3.html#putObject-property 
     }
   };
 
+fs.watchFile(process.env.TEMP  + filename, function () {
 
   var uploader = client.uploadFile(params);
   
@@ -218,6 +220,7 @@ uploadXls = function(filename, callback) {
   });
 
   return callback(null, prefixLoc);
+  });
 }
 // Return router
 module.exports = router;
