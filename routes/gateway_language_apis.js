@@ -23,8 +23,6 @@ router.route('/bibles').post(function(req, res){
   }, function(err, bible) { // Using RegEx - search is case insensitive
     if (!err && !bible) {
       
-      //var newChapIds = [];
-
       var newBible = new Bible();
       var count = 1;
 
@@ -154,7 +152,17 @@ router.route('/bibles').get(function(req, res) {
     if (err) {
       return res.send(err);
     }
-    res.status(200).json(bibles);
+    var gatewayList = [];
+    bibles.forEach(function(element){
+      var resArry = {};
+      resArry['bibleId'] = element.bibleId;
+      resArry['version'] = element.version;
+      resArry['langCode'] = element.langCode;
+      resArry['bibleUrl'] = element.bibleUrl;
+      
+      gatewayList.push(resArry);
+    });
+    res.status(200).json(gatewayList);
   });
 });
 
