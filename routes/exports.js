@@ -6,6 +6,8 @@ var _ = require('lodash');
 var xlsx = require('xlsx-writestream');
 var fs = require ('fs');
 var s3 = require('s3');
+var http = require('https');
+var xlsx_read = require('excel');
 
 //Models
 var Bible = require('../models/bible');
@@ -14,7 +16,7 @@ var Chapter =  require('../models/chapter');
 var Verse = require('../models/verse');
 
 // Export xls
-router.route('/bibles/:bible_id/books/:book_id/chapters/:chapter_id/targetlang/:trglang/xlsx').get(function(req, res){
+router.route('/bibles/:bible_id/books/:book_id/chapters/:chapter_id/xlsx/targetlang/:trglang').get(function(req, res){
 
     bibleId = req.params.bible_id;
     chapterId = req.params.chapter_id;
@@ -23,18 +25,16 @@ router.route('/bibles/:bible_id/books/:book_id/chapters/:chapter_id/targetlang/:
     targetLanguage = req.params.trglang;
     resJson = {};
     var resFlag = 0;
-    var verseStr = []; var bookMetakeys = [];
+    var verseStr = []; var bookMetakeys = []; 
 
     var iterateChapters = function (chapt, callback) {
     
        var tmpRes = {};
 	    if (chapterId == chapt.chapter) {
-	      //console.log('chapt is ' + chapt);
+
         Verse.find({chapterId:chapt._id}).exec(function (verseErr, verseDocs) {
-		    //console.log('verse is ' + verseDocs);
 		
           verses = _.pluck(verseDocs, 'verse');
-		      //console.log('the verses are ' + verses);
 
           verses.forEach(function(oneVerse){
 				    verseStr.push(oneVerse);
@@ -49,7 +49,7 @@ router.route('/bibles/:bible_id/books/:book_id/chapters/:chapter_id/targetlang/:
               uploadXls(xlsxRes, sourceLanguage, function(uploadErr, uploadRes) {
                 if (uploadErr) { return callback(uploadErr); }
                 return callback(null, uploadRes);
-                
+               
               });
 
             });
@@ -58,7 +58,7 @@ router.route('/bibles/:bible_id/books/:book_id/chapters/:chapter_id/targetlang/:
         });
 
       } else {
-          callback(null, 'false');
+          return callback(null, 'false');
       }
     };
     
@@ -82,13 +82,12 @@ router.route('/bibles/:bible_id/books/:book_id/chapters/:chapter_id/targetlang/:
 		      Book.findById(book._id)
 			     .populate('chapters')
 			     .exec(function (bookErr, bookDoc) {
-			       //console.log('first it is' + bookDoc);
              
             var metaData = JSON.parse(bookDoc.metadata);
             metaData.forEach(function(oneValue){
-              //console.log(JSON.stringify(oneValue));
+
               var arr = JSON.stringify(oneValue).split(":");
-              //console.log(arr[0].replace("{","").replace(/"/g, ""));
+
               verseStr.push(arr[0].replace("{","").replace(/"/g, ""));
               var tmpType = {};
               tmpType['Type'] = arr[1].replace("}","").replace(/"/g, "");
@@ -97,7 +96,7 @@ router.route('/bibles/:bible_id/books/:book_id/chapters/:chapter_id/targetlang/:
             });
 
              async.map(bookDoc.chapters, iterateChapters, function (err, results) {
-              //console.log(results);
+
                 if(err) {
                   res.status(500).json({
                       message: "Could not export the chapter. " + err
@@ -105,8 +104,14 @@ router.route('/bibles/:bible_id/books/:book_id/chapters/:chapter_id/targetlang/:
                 } else {
 
                   for(var i = 0; i < results.length; i++) {
+
                     if (results[i] != 'false') {
                       resFlag = 1;
+                      //res.setHeader("Content-Type", "application/vnd.ms-excel");
+                      //res.setHeader("Content-Disposition", "attachment");
+                      //res.setHeader("filename", '"' + results[i] +'"');
+                      //var tmpArr = results[i].split("/");
+                      //fs.unlink(__dirname + tmpArr[8]);
                       res.status(200).json({url : results[i]});
                     }
                   }
@@ -132,7 +137,7 @@ generateSuggestions = function(sourceData, sourceLang, targetLang, callback) {
     url: process.env.ALCHEMY_HOST + '/text-batch',
     qs: { texts: JSON.stringify(sourceData), from: sourceLang, to: targetLang, customer: process.env.ALCHEMY_CUSTOMER, token: process.env.ALCHEMY_AUTH_TOKEN, project: process.env.SE_PROJECT, asset: process.env.SE_ASSET }
   };
-  //console.log(options);
+
   request.get(options, function(alchemyErr, alchemyRes, alchemyBody) {
     if (alchemyErr) { return callback(alchemyErr); }
 
@@ -148,29 +153,79 @@ generateSuggestions = function(sourceData, sourceLang, targetLang, callback) {
 
 generateXls = function(sourceData, metaKeys, sourceLanguage, callback) {
 
-	console.log("Inside generateXls function"); var num = 1; var finalDta = [];
+	var readFileSize = 0; var num = 1; var finalDta = []; existingPostEdits = [];
  
   var filename = bookId + '_chapter_' + chapterId + '_' + sourceLanguage + '_to_' + targetLanguage + '.xlsx';
-	
-  for( var i = 0; i < sourceData.length; i++) {
-      if(metaKeys[i]!= null) {
-        var target = _.extend(metaKeys[i], sourceData[i]);
-        finalDta.push(target);
-      } else {
-        var verseNum = {};
-        verseNum['Type'] = num;
-        var target = _.extend(verseNum, sourceData[i]);
-        num++;
-        finalDta.push(target);
-      }
+
+  var iterateExcelData = function(numData, callback) {
+
+    var tmpColumn = {};
+    tmpColumn['Post Edit'] = numData[3];
+    return callback(null, tmpColumn);
+
   }
-  
-  xlsx.write(process.env.TEMP + filename, finalDta, function (err) {
-	    if(err) {return callback(null, err);}
-	});
-	
-  return callback(null, filename);
+
+  async.waterfall([
+    function(callback) {
+
+      var file = fs.createWriteStream(__dirname + filename);
+
+      var url = process.env.AWS_HOST + '/' + process.env.S3_BUCKET + '/' + process.env.AWS_ENV + '/' + sourceLanguage + '/' + bookId + '/chapter_' + chapterId + '/' + filename;
+      var request = http.get(url, function(response) {
+        response.pipe(file);
+
+        if (response.headers['content-length'] > 0) {
+          fs.watchFile(__dirname + filename, function(){
+            xlsx_read(__dirname + filename, function(err, data) {
+              if(err) throw err;
+          
+              async.map(data, iterateExcelData, function(err, results) {
+                existingPostEdits.push(results);
+              });
+              return callback(null, existingPostEdits);
+            });
+          });
+        } else {
+              return callback(null, false);
+        }
+      });
+    },
+    function(arg1, callback) {
+
+      for( var i = 0; i < sourceData.length; i++) {
+        if(metaKeys[i]!= null) {
+          if (arg1 != false){
+            var target = _.extend(metaKeys[i], sourceData[i], arg1[0][i]);
+          } else {
+            var target = _.extend(metaKeys[i], sourceData[i]);
+          }
+
+          finalDta.push(target);
+        } else {
+          var verseNum = {};
+          verseNum['Type'] = num;
+          if (arg1 != false){
+            var target = _.extend(verseNum, sourceData[i],arg1[0][i]);
+          } else {
+            var target = _.extend(verseNum, sourceData[i]);
+          }
+          
+          num++;
+          finalDta.push(target);
+        }
+      }
+    
+      xlsx.write(process.env.TEMP + filename, finalDta, function (err) {
+        if(err) {return callback(null, err);}
+      });
+        callback(null, filename);
+    }
+], function (err, result) {
+      return callback(null, result);
+});
+
 }
+
 
 uploadXls = function(filename, sourceLanguage, callback) {
 
@@ -190,7 +245,7 @@ uploadXls = function(filename, sourceLanguage, callback) {
 
   var prefixLoc = process.env.AWS_HOST + '/' + process.env.S3_BUCKET + '/' + process.env.AWS_ENV + '/' + sourceLanguage + '/' + bookId + '/chapter_' + chapterId + '/' + filename;
   var s3BucketKey = process.env.AWS_ENV + '/' + sourceLanguage + '/' + bookId + '/chapter_' + chapterId + '/' + filename;
-  console.log(s3BucketKey);
+
   var params = {
     localFile: process.env.TEMP  + filename,
  
@@ -218,9 +273,11 @@ fs.watchFile(process.env.TEMP  + filename, function () {
   uploader.on('end', function() {
    console.log("done uploading");
   });
-
+  fs.unlink(process.env.TEMP  + filename);
   return callback(null, prefixLoc);
   });
 }
+
+
 // Return router
 module.exports = router;
