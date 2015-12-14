@@ -1,28 +1,28 @@
 apiVersion: v1
 kind: ReplicationController
 metadata:
-  name: bible-api-v1.0.0  # Name of the RC
+  name: bible-api-v1  # Name of the RC
 spec:
   replicas: 3                # How many copies of your pod you want to run
   selector:                  # Set of selectors for matching pods this RC should maintain
     name: bible-api
     environment: production
     role: app
-    deployment: v1.0.0
+    deployment: v1
   template:                  # Pod template to use when this RC creates pods
     metadata:
       labels:                # Labels to use for the pods created by this RC
         name: bible-api
         environment: production
         role: app
-        deployment: v1.0.0
+        deployment: v1
     spec:
       terminationGracePeriodSeconds: 15  # How much time to give your pods before force killing them
       imagePullSecrets:                  # Keys needed by docker to pull private repository images from docker hub
         - name: dockerhubkey
       containers:                        # List of containser in this pod
         - name: app                      # Name of the container
-          image: sovee/bible-api:v1.0.0          # Image to use for the container
+          image: sovee/bible-api:1.0.4          # Image to use for the container
           command:                       # Command to execute when starting the container (Not needed if you have a CMD in your Dockerfile instead)
             - nodemon
             - server.js
@@ -32,6 +32,8 @@ spec:
           env:                           # List of environment variables to set in the container
             - name: AUTH_HOST
               value: "http://auth" 
+            - name: AUTH_TOKEN
+              value: '30c1bd57ea8f93bfc40f82f1ce80aedd771e7ca7'
             - name: DB_HOST
               value: 'c457.candidate.55.mongolayer.com:10457,candidate.54.mongolayer.com:10342,candidate.55.mongolayer.com:10457'
             - name: DB_DATABASE
@@ -42,3 +44,5 @@ spec:
               value: '0cc36adff87b434a841c7e8d7cccc702'
             - name: DB_REPLICA_SET
               value: 'set-5630eec9e66bf67594001734'
+            - name: PARALLEL_HOST
+              value: 'http://parallel-api'
