@@ -27,10 +27,12 @@ router.route('/bibles/:bible_id/books/:book_id/chapters/:chapter_id/xlsx/:trglan
     var resFlag = 0;
     var verseStr = []; var bookMetakeys = []; 
 
+
     var iterateChapters = function (chapt, callback) {
     
        var tmpRes = {};
 	    if (chapterId == chapt.chapter) {
+        var uploadFlag = true;
 
         Verse.find({chapterId:chapt._id}).exec(function (verseErr, verseDocs) {
 		
@@ -46,8 +48,11 @@ router.route('/bibles/:bible_id/books/:book_id/chapters/:chapter_id/xlsx/:trglan
             generateXls(suggestionRes,bookMetakeys, sourceLanguage, function(xlsxErr, xlsxRes) {
               if (xlsxErr) { return callback(xlsxErr); }
 
-              uploadXls(xlsxRes, sourceLanguage, function(uploadErr, uploadRes) {
+              uploadXls(xlsxRes, sourceLanguage, uploadFlag, function(uploadErr, uploadRes) {
+
                 if (uploadErr) { return callback(uploadErr); }
+                //var tmpArr = uploadRes.split("/");
+                //fs.unlink(process.env.TEMP  + tmpArr[8]);
                 callback(null, uploadRes);
                
               });
@@ -214,7 +219,7 @@ generateXls = function(sourceData, metaKeys, sourceLanguage, callback) {
           finalDta.push(target);
         }
       }
-      fs.unlink(process.env.TEMP + filename);
+      //fs.unlink(process.env.TEMP + filename);
       xlsx.write(process.env.TEMP + filename, finalDta, function (err) {
         if(err) {return callback(null, err);}
       });
@@ -227,7 +232,7 @@ generateXls = function(sourceData, metaKeys, sourceLanguage, callback) {
 }
 
 
-uploadXls = function(filename, sourceLanguage, callback) {
+uploadXls = function(filename, sourceLanguage, uploadFlag, callback) {
 
 	var client = s3.createClient({
     maxAsyncS3: 20,     // this is the default 
@@ -262,20 +267,23 @@ uploadXls = function(filename, sourceLanguage, callback) {
 fs.watchFile(process.env.TEMP  + filename, function () {
 
   var uploader = client.uploadFile(params);
+  if (uploadFlag == true) {
+      uploader.on('error', function(err) {
+        console.error("unable to upload:", err.stack);
+      });
+      uploader.on('progress', function() {
+        console.log("progress", uploader.progressMd5Amount,
+          uploader.progressAmount, uploader.progressTotal);
+      });
+      uploader.on('end', function() {
+       console.log("done uploading");
+       uploadFlag = false;
+       //fs.unlink(process.env.TEMP  + filename);
+      });
+         return callback(null, prefixLoc);
+  }
+  });
   
-  uploader.on('error', function(err) {
-    console.error("unable to upload:", err.stack);
-  });
-  uploader.on('progress', function() {
-    console.log("progress", uploader.progressMd5Amount,
-      uploader.progressAmount, uploader.progressTotal);
-  });
-  uploader.on('end', function() {
-   console.log("done uploading");
-  });
-  //fs.unlink(process.env.TEMP  + filename);
-  });
-  return callback(null, prefixLoc);
 }
 
 
