@@ -16,7 +16,7 @@ var Chapter =  require('../models/chapter');
 var Verse = require('../models/verse');
 
 // Export xls
-router.route('/bibles/:bible_id/books/:book_id/chapters/:chapter_id/xlsx/targetlang/:trglang').get(function(req, res){
+router.route('/bibles/:bible_id/books/:book_id/chapters/:chapter_id/xlsx/:trglang').get(function(req, res){
 
     bibleId = req.params.bible_id;
     chapterId = req.params.chapter_id;
@@ -48,7 +48,7 @@ router.route('/bibles/:bible_id/books/:book_id/chapters/:chapter_id/xlsx/targetl
 
               uploadXls(xlsxRes, sourceLanguage, function(uploadErr, uploadRes) {
                 if (uploadErr) { return callback(uploadErr); }
-                return callback(null, uploadRes);
+                callback(null, uploadRes);
                
               });
 
@@ -58,7 +58,7 @@ router.route('/bibles/:bible_id/books/:book_id/chapters/:chapter_id/xlsx/targetl
         });
 
       } else {
-          return callback(null, 'false');
+           callback(null, 'false');
       }
     };
     
@@ -214,11 +214,11 @@ generateXls = function(sourceData, metaKeys, sourceLanguage, callback) {
           finalDta.push(target);
         }
       }
-    
+      fs.unlink(process.env.TEMP + filename);
       xlsx.write(process.env.TEMP + filename, finalDta, function (err) {
         if(err) {return callback(null, err);}
       });
-        callback(null, filename);
+        return callback(null, filename);
     }
 ], function (err, result) {
       return callback(null, result);
@@ -273,9 +273,9 @@ fs.watchFile(process.env.TEMP  + filename, function () {
   uploader.on('end', function() {
    console.log("done uploading");
   });
-  fs.unlink(process.env.TEMP  + filename);
-  return callback(null, prefixLoc);
+  //fs.unlink(process.env.TEMP  + filename);
   });
+  return callback(null, prefixLoc);
 }
 
 
