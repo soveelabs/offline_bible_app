@@ -68,7 +68,6 @@ describe('export', function() {
 	    var request = https.get(url, function(response) {
 		response.pipe(file);
 		file.on('finish', function() {
-		    console.log('no scene');
 		    file.close(cb(null, dest));  // close() is async, call cb after close completes.
 		});
 	    }).on('error', function(err) {
