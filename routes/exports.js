@@ -175,11 +175,12 @@ generateXls = function(sourceData, metaKeys, sourceLanguage, callback) {
 
       var file = fs.createWriteStream(__dirname + filename);
 
-      var url = process.env.AWS_HOST + '/' + process.env.S3_BUCKET + '/' + process.env.AWS_ENV + '/' + sourceLanguage + '/' + bookId + '/chapter_' + chapterId + '/' + filename;
+      var url = process.env.AWS_HOST + '/' + process.env.S3_BUCKET + '/' + process.env.AWS_ENV + '/' + bibleId + '/' + sourceLanguage + '/' + bookId + '/chapter_' + chapterId + '/' + filename;
+      
       var request = http.get(url, function(response) {
         response.pipe(file);
 
-        if (response.headers['content-length'] > 0) {
+        if ((response.headers['content-length'] != 'undefined') && (response.headers['content-length'] > 0)) {
           fs.watchFile(__dirname + filename, function(){
             xlsx_read(__dirname + filename, function(err, data) {
               if(err) throw err;
@@ -248,8 +249,8 @@ uploadXls = function(filename, sourceLanguage, uploadFlag, callback) {
     }
   });
 
-  var prefixLoc = process.env.AWS_HOST + '/' + process.env.S3_BUCKET + '/' + process.env.AWS_ENV + '/' + sourceLanguage + '/' + bookId + '/chapter_' + chapterId + '/' + filename;
-  var s3BucketKey = process.env.AWS_ENV + '/' + sourceLanguage + '/' + bookId + '/chapter_' + chapterId + '/' + filename;
+  var prefixLoc = process.env.AWS_HOST + '/' + process.env.S3_BUCKET + '/' + process.env.AWS_ENV + '/' + bibleId + '/' + sourceLanguage + '/' + bookId + '/chapter_' + chapterId + '/' + filename;
+  var s3BucketKey = process.env.AWS_ENV + '/' + bibleId + '/' + sourceLanguage + '/' + bookId + '/chapter_' + chapterId + '/' + filename;
 
   var params = {
     localFile: process.env.TEMP  + filename,
@@ -260,7 +261,7 @@ uploadXls = function(filename, sourceLanguage, uploadFlag, callback) {
       ACL:'public-read'
 
       // other options supported by putObject, except Body and ContentLength. 
-      // See: http://docs.aws.amazon.com/AWSJavaScriptSDK/latest/AWS/S3.html#putObject-property 
+      // See: http://docs.aws.amazon.com/AWSJavaScriptSDK/latest/AWS/S3.html#putObject-property
     }
   };
 
