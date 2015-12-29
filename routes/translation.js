@@ -57,6 +57,24 @@ router.route('/bibles/:bible_id/translations').post(function(req, res){
     });
 });
 
+//List all translations of given bible_id
+router.route('/bibles/:bible_id/translations').get(function(req, res){
+    var bibleId = req.params.bible_id;
+    jsonRes = {}
+    TranslatedBible
+	.find({'sourceBibleId':bibleId})
+	.select('-_id -__v')
+	.exec(function(transErr, translations) {
+	    if(!transErr && translations) {
+		console.log(translations);
+		res.status(200).json(translations);
+	    } else if (transErr) {
+		res.status(409).json({
+		    message: "Cannot create duplicate translation."
+		});
+	    }
+    });
+});
 
 //    Bible.findOne({'bibleId':bibleId}, function(bibleErr, bible) { //Checking for valid bible_id.
 //	if (!bible) {
