@@ -101,7 +101,7 @@ router.route('/bibles').post(function(req, res){
                 
                 //bookMetadata = bookMetadata.substring(0, bookMetadata.length - 1);
 
-                console.log(bookMetadata);
+                //console.log(bookMetadata);
                 newBook.metadata = JSON.stringify(bookMetadata);
              
                 newBible.books.push(newBook._id); //Saving ref of books to Bible model.
