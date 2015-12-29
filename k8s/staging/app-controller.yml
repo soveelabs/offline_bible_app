@@ -1,28 +1,28 @@
 apiVersion: v1
 kind: ReplicationController
 metadata:
-  name: staging-bible-api-v1  # Name of the RC
+  name: staging-bible-api-v2  # Name of the RC
 spec:
   replicas: 3                # How many copies of your pod you want to run
   selector:                  # Set of selectors for matching pods this RC should maintain
     name: bible-api
     environment: staging
     role: app
-    deployment: v1
+    deployment: v2
   template:                  # Pod template to use when this RC creates pods
     metadata:
       labels:                # Labels to use for the pods created by this RC
         name: bible-api
         environment: staging
         role: app
-        deployment: v1
+        deployment: v2
     spec:
       terminationGracePeriodSeconds: 15  # How much time to give your pods before force killing them
       imagePullSecrets:                  # Keys needed by docker to pull private repository images from docker hub
         - name: dockerhubkey
       containers:                        # List of containser in this pod
         - name: app                      # Name of the container
-          image: sovee/bible-api:1.0.4          # Image to use for the container
+          image: sovee/bible-api:1.0.5          # Image to use for the container
           command:                       # Command to execute when starting the container (Not needed if you have a CMD in your Dockerfile instead)
             - npm
             - start
@@ -30,10 +30,20 @@ spec:
             - name: app                  # Name for the port (Not required if there is only 1 port)
               containerPort: 3000        # Port your app will listen on
           env:                           # List of environment variables to set in the container
+            - name: ALCHEMY_AUTH_TOKEN
+              value: '664d6eaa2015f05a81210aaa398c292d6f4bd641'
+            - name: ALCHEMY_CUSTOMER
+              value: 'Sovee'
+            - name: ALCHEMY_HOST
+              value: 'https://staging-alchemy.sovee.com'
             - name: AUTH_HOST
               value: "http://staging-auth"
             - name: AUTH_TOKEN
               value: "fe56002db2632cd72daff4ac496aac1cfec7577b"
+            - name: AWS_ENV
+              value: 'staging'
+            - name: AWS_HOST
+              value: 'https://s3.amazonaws.com'
             - name: DB_HOST
               value: 'c457.candidate.55.mongolayer.com:10457,candidate.54.mongolayer.com:10342,candidate.55.mongolayer.com:10457'
             - name: DB_DATABASE
@@ -46,3 +56,11 @@ spec:
               value: 'set-5630eec9e66bf67594001734'
             - name: PARALLEL_HOST
               value: "http://staging-parallel-api"
+            - name: S3_KEY
+              value: 'AKIAJEGTNC6WJFSOSX6A'
+            - name: S3_SECRET
+              value: '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'
+            - name: S3_BUCKET
+              value: 'sovee-bible-app'
+            - name: TEMP
+              value: '/tmp'
