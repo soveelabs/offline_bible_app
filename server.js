@@ -31,4 +31,6 @@ app.use('/api', require('./routes/translation'));
 
 app.use('/api', require('./routes/checkout'));
 
+app.use('/api', require('./routes/exports'));
+
 exports = module.exports = app;

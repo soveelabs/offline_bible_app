@@ -23,12 +23,9 @@ router.route('/bibles').post(function(req, res){
   }, function(err, bible) { // Using RegEx - search is case insensitive
     if (!err && !bible) {
       
-      
-
       var newBible = new Bible();
       var count = 1;
 
-//      console.log(req.body);
       newBible.bibleId = req.body.bibleId;
       newBible.version = req.body.version;
       newBible.langCode = req.body.langCode;
@@ -44,15 +41,27 @@ router.route('/bibles').post(function(req, res){
         if (!error && response.statusCode == 200) {
            
             var resJson = JSON.parse(body); // Print the google web page.
-//            console.log( "i am inside if " + body);
 
             resJson.forEach(function(books){
               
+                var bookMetadata = []; 
+                var info = _.pluck(books, 'info');
+                info.forEach(function(bookInfo){
+                  
+                  bookInfo.forEach(function(oneBookInfo){
+                   
+                      var tempTxt = {};
+                      tempTxt[oneBookInfo.text] = oneBookInfo.type;
+                      bookMetadata.push(tempTxt);
+                  });
+                });
+
 
                 keys = Object.keys(books);
                 var verses = _.pluck(books, 'chapters');
                 var i = 0;
                 var newChapIds = [];
+
                 verses.forEach(function(versee) {
 
                     _.forEach(versee, function(versesChapter, chapterKey) {
@@ -89,6 +98,11 @@ router.route('/bibles').post(function(req, res){
                 newBook.bookId = keys[0].trim();
                 //newBook.url = req.body.url;
                 newBook.chapters = newChapIds;
+                
+                //bookMetadata = bookMetadata.substring(0, bookMetadata.length - 1);
+
+                //console.log(bookMetadata);
+                newBook.metadata = JSON.stringify(bookMetadata);
              
                 newBible.books.push(newBook._id); //Saving ref of books to Bible model.
           
