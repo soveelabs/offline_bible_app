@@ -13,7 +13,7 @@ describe('translations', function() {
 	bibleId: 'hin-dev',
 	version: 'Hindi Developer Edition',
 	langCode: 'hin',
-	bibleUrl: 'http://foo.hin.bar',
+	sourceBibleId: 'eng-asv'
     };
     
     var validChapterArgs = {
@@ -36,7 +36,7 @@ describe('translations', function() {
 	bibleUrl: 'http://foo.xml',
     };
     
-    describe('get /translations', function() {
+    describe('get /chapter_id/translations', function() {
       	beforeEach(function(done) {
 	    var translatedBible = new TranslatedBible(validTranslatedBibleArgs);
 	    translatedBible.save(function(transErr, transBible){
@@ -157,13 +157,61 @@ describe('translations', function() {
 	});
     });
 
+    
+    describe('get /translations', function() {
+	beforeEach(function(done) {
+	    var translatedBible = new TranslatedBible(validTranslatedBibleArgs);
+	    translatedBible.save(function(transErr, transBible){
+		var chapter = new Chapter(validChapterArgs);
+		chapter.translations.push({bibleId: translatedBible._id, url: 'http://translatedBible.foo'});
+		chapter.save(function(chapterErr, chapt) {
+		    if (chapterErr) { return done(chapterErr); }
+		    var book = new Book(validBookArgs);
+		    book.chapters.push(chapter._id);
+		    book.save(function(err, bookRes) {
+			if (err) { return done(err); }
+			var bible = new Bible(validBibleArgs);
+			bible.books.push(book._id);
+			bible.save(function(bibleErr, res) {
+			    if (bibleErr){ return done(bibleErr); }
+			    done();
+			});
+		    });
+		});
+	    });
+	});
+
+	it('requires authentication', function(done) {
+	    request(app)
+		.get('/api/bibles/eng-asv/translations')
+		.accept('json')
+		.expect(401, done);
+	});	
+	
+	it('lists all translations of given bible_id', function(done) {
+	    request(app)
+		.get('/api/bibles/eng-asv/translations')
+		.set('Authorization', 'Token token=' + process.env.AUTH_TOKEN)
+		.accept('json')
+		.expect(200)
+		.end(function(err, res) {
+		    expect(res.body[0]).to.have.property('bibleId', 'hin-dev');
+		    expect(res.body[0]).to.have.property('version', 'Hindi Developer Edition');
+		    expect(res.body[0]).to.have.property('langCode', 'hin');
+		    expect(res.body[0]).to.have.property('sourceBibleId', 'eng-asv');
+		    done();
+		});
+	});
+    });
+
+
     describe('get /translations/translated_bible_id', function() {
 
 	beforeEach(function(done) {
 	    var translatedBible = new TranslatedBible(validTranslatedBibleArgs);
 	    translatedBible.save(function(transErr, transBible){
 		var chapter = new Chapter(validChapterArgs);
-		chapter.translations.push({bibleId: translatedBible._id, url: 'http://translatedBible.foo'});
+		chapter.translations.push({bibleId: translatedBible._id, url: 'http://translatedBible.foo/file.xml'});
 		chapter.save(function(chapterErr, chapt) {
 		    if (chapterErr) { return done(chapterErr); }
 		    var book = new Book(validBookArgs);
@@ -204,7 +252,7 @@ describe('translations', function() {
 		    expect(res.body.translations[0]).to.have.property('bibleId','hin-dev');
 		    expect(res.body.translations[0]).to.have.property('version','Hindi Developer Edition');
 		    expect(res.body.translations[0]).to.have.property('langCode','hin');
-		    expect(res.body.translations[0]).to.have.property('url','http://translatedBible.foo');
+		    expect(res.body.translations[0]).to.have.property('url','http://translatedBible.foo/file.xml');
 		    done();
 		    });
 	});

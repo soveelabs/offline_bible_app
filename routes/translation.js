@@ -66,7 +66,6 @@ router.route('/bibles/:bible_id/translations').get(function(req, res){
 	.select('-_id -__v')
 	.exec(function(transErr, translations) {
 	    if(!transErr && translations.length > 0) {
-		console.log(translations);
 		res.status(200).json(translations);
 	    } else if (!transErr && translations.length <= 0) {
 		res.status(404).json({
