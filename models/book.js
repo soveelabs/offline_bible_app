@@ -8,6 +8,7 @@ var bookSchema = new mongoose.Schema({
     bibleId: String,
     bookId: String,
     url: String,
+    metadata: String,
     chapters: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Chapter' }]
     
 });
