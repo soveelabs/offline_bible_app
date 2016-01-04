@@ -1,28 +1,28 @@
 apiVersion: v1
 kind: ReplicationController
 metadata:
-  name: staging-bible-api-v3  # Name of the RC
+  name: staging-bible-api-v4  # Name of the RC
 spec:
   replicas: 3                # How many copies of your pod you want to run
   selector:                  # Set of selectors for matching pods this RC should maintain
     name: bible-api
     environment: staging
     role: app
-    deployment: v3
+    deployment: v4
   template:                  # Pod template to use when this RC creates pods
     metadata:
       labels:                # Labels to use for the pods created by this RC
         name: bible-api
         environment: staging
         role: app
-        deployment: v3
+        deployment: v4
     spec:
       terminationGracePeriodSeconds: 15  # How much time to give your pods before force killing them
       imagePullSecrets:                  # Keys needed by docker to pull private repository images from docker hub
         - name: dockerhubkey
       containers:                        # List of containser in this pod
         - name: app                      # Name of the container
-          image: sovee/bible-api:1.0.6          # Image to use for the container
+          image: sovee/bible-api:1.0.7          # Image to use for the container
           command:                       # Command to execute when starting the container (Not needed if you have a CMD in your Dockerfile instead)
             - npm
             - start
