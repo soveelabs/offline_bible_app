@@ -199,8 +199,8 @@ router.route('/bibles/:bible_id/books').get(function(req, res) {
     };
 
     var iterateBooks = function(num, callback) {
-
-        Book.populate(num, [{path:'books'}], function(chaptError, value){
+	return callback(null, num['bookName']);
+/*        Book.populate(num, [{path:'books'}], function(chaptError, value){
         Book.findById(value._id)
             .populate('chapters')
             .exec(function (bookErr, bookDoc) {
@@ -210,7 +210,7 @@ router.route('/bibles/:bible_id/books').get(function(req, res) {
                 });
             });
         
-        });
+        }); */
 
     }
 
@@ -231,11 +231,8 @@ router.route('/bibles/:bible_id/books').get(function(req, res) {
         }
         jsonRes['version'] = selBible.version;
         jsonRes['langCode'] = selBible.langCode;
-        
         async.map(selBible.books, iterateBooks, function (err, results) {
-
             jsonRes['books'] = results;
-            
             res.status(200).json(jsonRes);
         });
 
