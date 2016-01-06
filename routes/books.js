@@ -128,7 +128,7 @@ function bookCreate(inputBookName) {
 	        var newBook = new Book();
 	        newBook.bookName = inputBookName;
             newBook.bibleId = bibleId;
-            newBook.bookId = req.body.bookId;
+	    newBook.bookId = req.body.bookId.trim().replace(/\s+/g, '');
             newBook.url = req.body.url;
             newBook.chapters = newChapIds;
              //newBook.chapters = req.body.chapters;
@@ -199,7 +199,10 @@ router.route('/bibles/:bible_id/books').get(function(req, res) {
     };
 
     var iterateBooks = function(num, callback) {
-	return callback(null, num['bookName']);
+	temp = {};
+	temp['bookName'] = num['bookName'];
+	temp['bookId'] = num['bookId'];
+	return callback(null, temp);
 /*        Book.populate(num, [{path:'books'}], function(chaptError, value){
         Book.findById(value._id)
             .populate('chapters')

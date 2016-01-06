@@ -18,7 +18,7 @@ var Verse = require('../models/verse');
 router.route('/bibles/:bible_id/books/:book_id/chapters').post(function(req, res){
     var json = {};
     var bibleId = req.params.bible_id;
-    var bookId = req.params.book_id;
+    var bookId = req.params.book_id.toLowerCase();
     var tempArr = [];
     var resBuildChapt = {};
     var existsFlag = false;
@@ -38,7 +38,7 @@ router.route('/bibles/:bible_id/books/:book_id/chapters').post(function(req, res
 		});
 	    }
 	    selBible.books.forEach(function (book) {
-		if (book.bookName == bookId) {
+		if (book.bookId == bookId) {
 		    Book.findById(book._id)
 			.populate('chapters')
 			.exec(function (bookErr, bookDoc) {
@@ -130,7 +130,7 @@ router.route('/bibles/:bible_id/books/:book_id/chapters').post(function(req, res
 // LIST Bible Chapters
 router.route('/bibles/:bible_id/books/:book_id/chapters').get(function(req, res) {
     var bibleId = req.params.bible_id;
-    var bookId = req.params.book_id;
+    var bookId = req.params.book_id.toLowerCase();
     var json = {};
     json['bibleId'] = bibleId;
     json['bookId'] = bookId;
@@ -174,7 +174,7 @@ router.route('/bibles/:bible_id/books/:book_id/chapters').get(function(req, res)
 	    json['version'] = selBible.version;
 	    json['langCode'] = selBible.langCode;
 	    selBible.books.forEach(function (book) {
-		if (book.bookName == bookId) {
+		if (book.bookId == bookId) {
 		    Book.findById(book._id)
 			.populate('chapters')
 			.exec(function (bookErr, bookDoc) {
@@ -193,7 +193,7 @@ router.route('/bibles/:bible_id/books/:book_id/chapters').get(function(req, res)
 router.route('/bibles/:bible_id/books/:book_id/chapters/:chapter_id').put( function(req, res) {
     var json = {};
     var bibleId = req.params.bible_id;
-    var bookId = req.params.book_id;
+    var bookId = req.params.book_id.toLowerCase();
     var chapterId = req.params.chapter_id;
     var inputUrl = req.body.url;
     var tempArr = [];
@@ -260,7 +260,7 @@ router.route('/bibles/:bible_id/books/:book_id/chapters/:chapter_id').put( funct
 		});
 	    }
 	    selBible.books.forEach(function (book) {
-		if (book.bookName == bookId) {
+		if (book.bookId == bookId) {
 		    Book.findById(book._id)
 			.populate('chapters')
 			.exec(function (bookErr, bookDoc) {

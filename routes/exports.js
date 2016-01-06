@@ -16,13 +16,14 @@ var Chapter =  require('../models/chapter');
 var Verse = require('../models/verse');
 
 // Export xls
-router.route('/bibles/:bible_id/books/:book_id/chapters/:chapter_id/xlsx/:trglang').get(function(req, res){
-
+router.route('/bibles/:bible_id/books/:book_id/chapters/:chapter_id/:trglang/:filename').get(function(req, res){
+    filename = req.params.filename.toLowerCase();
+    console.log('filename is ' + req.params.filename);
     bibleId = req.params.bible_id;
     chapterId = req.params.chapter_id;
-    bookId = req.params.book_id;
+    bookId = req.params.book_id.toLowerCase();
     var sourceLanguage;
-    targetLanguage = req.params.trglang;
+    targetLanguage = req.params.trglang.toLowerCase();
     resJson = {};
     var resFlag = 0;
     var verseStr = []; var bookMetakeys = []; 
@@ -45,6 +46,7 @@ router.route('/bibles/:bible_id/books/:book_id/chapters/:chapter_id/xlsx/:trglan
 		    if (suggestionErr) { return callback(suggestionErr); }
 
 		    generateXls(suggestionRes,bookMetakeys, sourceLanguage, function(xlsxErr, xlsxRes) {
+			console.log('done here.');
 			if (xlsxErr) { return callback(xlsxErr); }
 
 			uploadXls(xlsxRes, sourceLanguage, function(uploadErr, uploadRes) {
@@ -66,73 +68,76 @@ router.route('/bibles/:bible_id/books/:book_id/chapters/:chapter_id/xlsx/:trglan
 	}
     };
     
-    Bible
-	.findOne({'bibleId':bibleId})
-	.populate('books')
-	.exec(function (err, selBible) {
-	    if (err) {
-		return res.status(500).json({
-		    message: "Error processing request. " + err
-		});
-	    }
-	    if (!selBible) {
-		return res.status(404).json({
-		    message: "Could not find Bible with the given name. " + err
-		});
-	    }
-	    sourceLanguage = selBible.langCode;
-	    selBible.books.forEach(function (book) {
-		if (book.bookName == bookId) {
-		    Book.findById(book._id)
-			.populate('chapters')
-			.exec(function (bookErr, bookDoc) {
-			    
-			    var metaData = JSON.parse(bookDoc.metadata);
-			    metaData.forEach(function(oneValue){
-
-				var arr = JSON.stringify(oneValue).split(":");
-
-				verseStr.push(arr[0].replace("{","").replace(/"/g, ""));
-				var tmpType = {};
-				tmpType['Type'] = arr[1].replace("}","").replace(/"/g, "");
-				bookMetakeys.push(tmpType);
+    if(filename.split('.')[1] == 'xlsx') {
+	Bible
+	    .findOne({'bibleId':bibleId})
+	    .populate('books')
+	    .exec(function (err, selBible) {
+		if (err) {
+		    return res.status(500).json({
+			message: "Error processing request. " + err
+		    });
+		}
+		if (!selBible) {
+		    return res.status(404).json({
+			message: "Could not find Bible with the given name. " + err
+		    });
+		}
+		sourceLanguage = selBible.langCode;
+		console.log('here in sel');
+		selBible.books.forEach(function (book) {
+		    if (book.bookId == bookId) {
+			console.log('in book');
+			Book.findById(book._id)
+			    .populate('chapters')
+			    .exec(function (bookErr, bookDoc) {
 				
-			    });
+				var metaData = JSON.parse(bookDoc.metadata);
+				metaData.forEach(function(oneValue){
 
-			    async.map(bookDoc.chapters, iterateChapters, function (err, results) {
+				    var arr = JSON.stringify(oneValue).split(":");
 
-				if(err) {
-				    res.status(500).json({
-					message: "Could not export the chapter. " + err
-				    });
-				} else {
+				    verseStr.push(arr[0].replace("{","").replace(/"/g, ""));
+				    var tmpType = {};
+				    tmpType['Type'] = arr[1].replace("}","").replace(/"/g, "");
+				    bookMetakeys.push(tmpType);
+				    
+				});
+				console.log('now here1');
+				async.map(bookDoc.chapters, iterateChapters, function (err, results) {
 
-				    for(var i = 0; i < results.length; i++) {
+				    if(err) {
+					res.status(500).json({
+					    message: "Could not export the chapter. " + err
+					});
+				    } else {
 
-					if (results[i] != 'false') {
-					    resFlag = 1;
-					    //res.setHeader("Content-Type", "application/vnd.ms-excel");
-					    //res.setHeader("Content-Disposition", "attachment");
-					    //res.setHeader("filename", '"' + results[i] +'"');
-					    //var tmpArr = results[i].split("/");
-					    //fs.unlink(__dirname + tmpArr[8]);
-					    res.status(200).json({url : results[i]});
+					for(var i = 0; i < results.length; i++) {
+
+					    if (results[i] != 'false') {
+						resFlag = 1;
+						//res.setHeader("Content-Type", "application/vnd.ms-excel");
+						//res.setHeader("Content-Disposition", "attachment");
+						//res.setHeader("filename", '"' + results[i] +'"');
+						//var tmpArr = results[i].split("/");
+						//fs.unlink(__dirname + tmpArr[8]);
+						res.status(200).json({url : results[i]});
+					    }
+					}
+					
+					if (resFlag == 0) {
+					    res.status(404).json({
+						message: "Could not found the chapter. " + err
+					    });
 					}
 				    }
-				    
-				    if (resFlag == 0) {
-					res.status(404).json({
-					    message: "Could not found the chapter. " + err
-					});
-				    }
-				}
 
+				});
 			    });
-			});
-		}
+		    }
+		});
 	    });
-	});
-
+    }
 });
 
 
@@ -159,7 +164,7 @@ generateXls = function(sourceData, metaKeys, sourceLanguage, callback) {
 
     var readFileSize = 0; var num = 1; var finalDta = []; existingPostEdits = [];
     
-    var filename = bookId + '_chapter_' + chapterId + '_' + sourceLanguage + '_to_' + targetLanguage + '.xlsx';
+//    var filename = bookId + '_chapter_' + chapterId + '_' + sourceLanguage + '_to_' + targetLanguage + '.xlsx';
 
     var iterateExcelData = function(numData, callback) {
 
@@ -172,7 +177,6 @@ generateXls = function(sourceData, metaKeys, sourceLanguage, callback) {
     async.waterfall([
 	function(callback) {
 	    var file = fs.createWriteStream(process.env.TEMP + '/' + 'temp_'+ filename);
-
 	    var url = process.env.AWS_HOST + '/' + process.env.S3_BUCKET + '/' + process.env.AWS_ENV + '/' + bibleId + '/' + sourceLanguage + '/' + bookId + '/chapter_' + chapterId + '/' + filename;
 	    
 	    var request = http.get(url, function(response) {
@@ -245,8 +249,8 @@ uploadXls = function(filename, sourceLanguage, callback) {
 	}
     });
 
-    var prefixLoc = process.env.AWS_HOST + '/' + process.env.S3_BUCKET + '/' + process.env.AWS_ENV + '/' + bibleId + '/' + sourceLanguage + '/' + bookId + '/chapter_' + chapterId + '/' + filename;
-    var s3BucketKey = process.env.AWS_ENV + '/' + bibleId + '/' + sourceLanguage + '/' + bookId + '/chapter_' + chapterId + '/' + filename;
+    var prefixLoc = process.env.AWS_HOST + '/' + process.env.S3_BUCKET + '/' + process.env.AWS_ENV + '/' + bibleId + '/' + targetLanguage + '/' + bookId + '/chapter_' + chapterId + '/' + filename;
+    var s3BucketKey = process.env.AWS_ENV + '/' + bibleId + '/' + targetLanguage + '/' + bookId + '/chapter_' + chapterId + '/' + filename;
 
     var params = {
 	localFile: process.env.TEMP  + '/' + filename,

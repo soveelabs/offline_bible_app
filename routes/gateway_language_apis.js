@@ -40,7 +40,7 @@ router.route('/bibles').post(function(req, res){
         
         if (!error && response.statusCode == 200) {
            
-            var resJson = JSON.parse(body); // Print the google web page.
+            var resJson = JSON.parse(body);
 
             resJson.forEach(function(books){
               
@@ -95,7 +95,8 @@ router.route('/bibles').post(function(req, res){
                 var newBook = new Book();
                 newBook.bookName = keys[0].trim();
                 newBook.bibleId = req.body.bibleId;
-                newBook.bookId = keys[0].trim();
+		tempBookId = keys[0].trim().replace(/\s+/g, '');
+                newBook.bookId = tempBookId.toLowerCase();
                 //newBook.url = req.body.url;
                 newBook.chapters = newChapIds;
                 
