@@ -17,14 +17,14 @@ describe('chapter', function() {
     };
     
     var validChapterArgs = {
-	bookId: 'John',
+	bookId: 'john',
 	chapter: '3',
 	url: 'http://bar.xml'
     };
     
     var validBookArgs = {
 	bookName: 'John',
-	bookId: 'John',
+	bookId: 'john',
 	bibleId: 'eng-asv',
 	url: 'http://foo.xml'
     };
@@ -86,7 +86,7 @@ describe('chapter', function() {
 		    expect(res.body).to.have.property('bibleId', 'eng-asv');
 		    expect(res.body).to.have.property('version', 'English Developer Edition');
 		    expect(res.body).to.have.property('langCode', 'eng');
-		    expect(res.body).to.have.property('bookId', 'John');
+		    expect(res.body).to.have.property('bookId', 'john');
 		    expect(res.body.chapters.length).to.equal(1);
 		    expect(res.body.chapters[0]).to.have.property('chapter','3');
 		    expect(res.body.chapters[0]).to.have.property('translations');
@@ -144,13 +144,13 @@ describe('chapter', function() {
 		.expect(201)
 		.end(function(err, res) {
 		    if (err) { return done(err);}
-		    Chapter.findOne({bookId:'John', chapter: '2'}, function(err, chapter){
+		    Chapter.findOne({bookId:'john', chapter: '2'}, function(err, chapter){
 			expect(chapter).to.have.property('chapter','2');
-			expect(chapter).to.have.property('bookId','John');
+			expect(chapter).to.have.property('bookId','john');
 			expect(chapter).to.have.property('url','http://operationagape.com/soveetest/John_chapter_2.xml');
 			expect(chapter).to.have.property('translations');
 			Verse.find({verseNumber: '1'}, function(verseErr, verse){
-			    expect(verse[0]).to.have.property('bookId','John');
+			    expect(verse[0]).to.have.property('bookId','john');
 			    expect(verse[0]).to.have.property('verse','And the third day there was a marriage in Cana of Galilee; and the mother of Jesus was there:');
 			    done();
 			});
@@ -201,13 +201,13 @@ describe('chapter', function() {
 		.expect(200)
 		.end(function(err, res) {
 		    if (err) { return done(err);}
-		    Chapter.findOne({bookId:'John', chapter: '3'}, function(err, chapter){
+		    Chapter.findOne({bookId:'john', chapter: '3'}, function(err, chapter){
 			expect(chapter).to.have.property('chapter','3');
-			expect(chapter).to.have.property('bookId','John');
+			expect(chapter).to.have.property('bookId','john');
 			expect(chapter).to.have.property('url','http://operationagape.com/soveetest/John_chapter_2.xml');
 			expect(chapter).to.have.property('translations');
 			Verse.find({verseNumber: '1'}, function(verseErr, verse){
-			    expect(verse[0]).to.have.property('bookId','John');
+			    expect(verse[0]).to.have.property('bookId','john');
 			    expect(verse[0]).to.have.property('verse','And the third day there was a marriage in Cana of Galilee; and the mother of Jesus was there:');
 			    done();
 			});

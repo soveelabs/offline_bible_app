@@ -18,7 +18,6 @@ var Verse = require('../models/verse');
 // Export xls
 router.route('/bibles/:bible_id/books/:book_id/chapters/:chapter_id/:trglang/:filename').get(function(req, res){
     filename = req.params.filename.toLowerCase();
-    console.log('filename is ' + req.params.filename);
     bibleId = req.params.bible_id;
     chapterId = req.params.chapter_id;
     bookId = req.params.book_id.toLowerCase();
@@ -46,7 +45,6 @@ router.route('/bibles/:bible_id/books/:book_id/chapters/:chapter_id/:trglang/:fi
 		    if (suggestionErr) { return callback(suggestionErr); }
 
 		    generateXls(suggestionRes,bookMetakeys, sourceLanguage, function(xlsxErr, xlsxRes) {
-			console.log('done here.');
 			if (xlsxErr) { return callback(xlsxErr); }
 
 			uploadXls(xlsxRes, sourceLanguage, function(uploadErr, uploadRes) {
@@ -84,10 +82,8 @@ router.route('/bibles/:bible_id/books/:book_id/chapters/:chapter_id/:trglang/:fi
 		    });
 		}
 		sourceLanguage = selBible.langCode;
-		console.log('here in sel');
 		selBible.books.forEach(function (book) {
 		    if (book.bookId == bookId) {
-			console.log('in book');
 			Book.findById(book._id)
 			    .populate('chapters')
 			    .exec(function (bookErr, bookDoc) {
@@ -103,7 +99,6 @@ router.route('/bibles/:bible_id/books/:book_id/chapters/:chapter_id/:trglang/:fi
 				    bookMetakeys.push(tmpType);
 				    
 				});
-				console.log('now here1');
 				async.map(bookDoc.chapters, iterateChapters, function (err, results) {
 
 				    if(err) {

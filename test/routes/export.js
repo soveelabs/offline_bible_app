@@ -11,7 +11,7 @@ fs = require('fs');
 
 describe('export', function() {
 
-    describe('get /xlsx', function() {
+    describe('get /file.xlsx', function() {
       	beforeEach(function(done) {
 	    this.timeout(8000);
 	    request(app)
@@ -35,7 +35,7 @@ describe('export', function() {
 
 	it('requires authentication', function(done) {
 	    request(app)
-		.get('/api/bibles/en-asv/books/Exodus/chapters/1/xlsx/hi')
+		.get('/api/bibles/en-asv/books/Exodus/chapters/1/hi/en-asv_Exodus_1_hi.xlsx')
 		.accept('json')
 		.expect(401, done);
 	});
@@ -43,7 +43,7 @@ describe('export', function() {
 	it('creates and downloads a chapter xlsx', function(done) {
 	    this.timeout(100000);
 	    request(app)
-		.get('/api/bibles/en-asv/books/Exodus/chapters/1/xlsx/hi')
+		.get('/api/bibles/en-asv/books/Exodus/chapters/1/hi/en-asv_Exodus_1_hi.xlsx')
 		.set('Authorization', 'Token token=' + process.env.AUTH_TOKEN)
 		.accept('json')
 		.expect(200)
