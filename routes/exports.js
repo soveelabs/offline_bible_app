@@ -26,41 +26,25 @@ router.route('/bibles/:bible_id/books/:book_id/chapters/:chapter_id/:trglang/:fi
     resJson = {};
     var resFlag = 0;
     var verseStr = []; var bookMetakeys = []; 
-
-
     var iterateChapters = function (chapt, callback) {
-	
 	var tmpRes = {};
 	if (chapterId == chapt.chapter) {
-
             Verse.find({chapterId:chapt._id}).exec(function (verseErr, verseDocs) {
-		
 		verses = _.pluck(verseDocs, 'verse');
-
 		verses.forEach(function(oneVerse){
 		    verseStr.push(oneVerse);
 		});
-
 		generateSuggestions(verseStr, sourceLanguage, targetLanguage, function(suggestionErr, suggestionRes) {
 		    if (suggestionErr) { return callback(suggestionErr); }
-
 		    generateXls(suggestionRes,bookMetakeys, sourceLanguage, function(xlsxErr, xlsxRes) {
 			if (xlsxErr) { return callback(xlsxErr); }
-
 			uploadXls(xlsxRes, sourceLanguage, function(uploadErr, uploadRes) {
-
 			    if (uploadErr) { return callback(uploadErr); }
-			    //var tmpArr = uploadRes.split("/");
-			    //fs.unlink(process.env.TEMP  + tmpArr[8]);
 			    callback(null, uploadRes);
-			    
 			});
-
 		    });
-
 		});
             });
-
 	} else {
             callback(null, 'false');
 	}
@@ -87,39 +71,27 @@ router.route('/bibles/:bible_id/books/:book_id/chapters/:chapter_id/:trglang/:fi
 			Book.findById(book._id)
 			    .populate('chapters')
 			    .exec(function (bookErr, bookDoc) {
-				
 				var metaData = JSON.parse(bookDoc.metadata);
 				metaData.forEach(function(oneValue){
-
 				    var arr = JSON.stringify(oneValue).split(":");
-
 				    verseStr.push(arr[0].replace("{","").replace(/"/g, ""));
 				    var tmpType = {};
 				    tmpType['Type'] = arr[1].replace("}","").replace(/"/g, "");
 				    bookMetakeys.push(tmpType);
-				    
 				});
 				async.map(bookDoc.chapters, iterateChapters, function (err, results) {
-
 				    if(err) {
 					res.status(500).json({
 					    message: "Could not export the chapter. " + err
 					});
 				    } else {
-
 					for(var i = 0; i < results.length; i++) {
 
 					    if (results[i] != 'false') {
 						resFlag = 1;
-						//res.setHeader("Content-Type", "application/vnd.ms-excel");
-						//res.setHeader("Content-Disposition", "attachment");
-						//res.setHeader("filename", '"' + results[i] +'"');
-						//var tmpArr = results[i].split("/");
-						//fs.unlink(__dirname + tmpArr[8]);
 						res.status(200).json({url : results[i]});
 					    }
 					}
-					
 					if (resFlag == 0) {
 					    res.status(404).json({
 						message: "Could not found the chapter. " + err
@@ -144,41 +116,30 @@ generateSuggestions = function(sourceData, sourceLang, targetLang, callback) {
 
     request.get(options, function(alchemyErr, alchemyRes, alchemyBody) {
 	if (alchemyErr) { return callback(alchemyErr); }
-
 	var suggestions = []
-
 	for (var i = 0; i < sourceData.length; i++) {
 	    suggestions.push({ source: sourceData[i], suggestion: JSON.parse(alchemyBody)[i] });
 	}
-
 	return callback(null, suggestions);
     });
 }
 
 generateXls = function(sourceData, metaKeys, sourceLanguage, callback) {
-
     var readFileSize = 0; var num = 1; var finalDta = []; existingPostEdits = [];
-    
-//    var filename = bookId + '_chapter_' + chapterId + '_' + sourceLanguage + '_to_' + targetLanguage + '.xlsx';
-
     var iterateExcelData = function(numData, callback) {
-
 	var tmpColumn = {};
 	tmpColumn['Post Edit'] = numData[3];
 	return callback(null, tmpColumn);
-
     }
 
     async.waterfall([
 	function(callback) {
 	    var file = fs.createWriteStream(process.env.TEMP + '/' + 'temp_'+ filename);
 	    var url = process.env.AWS_HOST + '/' + process.env.S3_BUCKET + '/' + process.env.AWS_ENV + '/' + bibleId + '/' + sourceLanguage + '/' + bookId + '/chapter_' + chapterId + '/' + filename;
-	    
 	    var request = http.get(url, function(response) {
 		response.pipe(file);
 		if ((response.headers['content-length'] != 'undefined') && (response.headers['content-length'] > 0)) {
 		    fs.watchFile(process.env.TEMP + '/' + 'temp_'+ filename, function(){
-
 			xlsx_read(process.env.TEMP + '/' + 'temp_' + filename, function(err, data) {
 			    if(err) throw err;
 			    async.map(data, iterateExcelData, function(err, results) {
@@ -195,7 +156,6 @@ generateXls = function(sourceData, metaKeys, sourceLanguage, callback) {
 	    });
 	},
 	function(arg1, callback) {
-
 	    for( var i = 0; i < sourceData.length; i++) {
 		if(metaKeys[i]!= null) {
 		    if (arg1 != false){
@@ -203,7 +163,6 @@ generateXls = function(sourceData, metaKeys, sourceLanguage, callback) {
 		    } else {
 			var target = _.extend(metaKeys[i], sourceData[i]);
 		    }
-
 		    finalDta.push(target);
 		} else {
 		    var verseNum = {};
@@ -213,7 +172,6 @@ generateXls = function(sourceData, metaKeys, sourceLanguage, callback) {
 		    } else {
 			var target = _.extend(verseNum, sourceData[i]);
 		    }
-		    
 		    num++;
 		    finalDta.push(target);
 		}
@@ -226,9 +184,7 @@ generateXls = function(sourceData, metaKeys, sourceLanguage, callback) {
     ], function (err, result) {
 	return callback(null, result);
     });
-
 }
-
 
 uploadXls = function(filename, sourceLanguage, callback) {
 
@@ -254,13 +210,10 @@ uploadXls = function(filename, sourceLanguage, callback) {
 	    Bucket: process.env.S3_BUCKET,
 	    Key: s3BucketKey,
 	    ACL:'public-read'
-	    // other options supported by putObject, except Body and ContentLength. 
-	    // See: http://docs.aws.amazon.com/AWSJavaScriptSDK/latest/AWS/S3.html#putObject-property
+	    // See: http://docs.aws.amazon.com/AWSJavaScriptSDK/latest/AWS/S3.html#putObject-property for more options
 	}
     };
-
     fs.watchFile(process.env.TEMP + '/' + filename, function () {
-
 	var uploader = client.uploadFile(params);
 	uploader.on('error', function(err) {
             console.error("unable to upload:", err.stack);
@@ -274,12 +227,9 @@ uploadXls = function(filename, sourceLanguage, callback) {
 	    fs.unwatchFile(process.env.TEMP + '/' + filename);
 	    fs.unlinkSync(process.env.TEMP + '/' + filename);	    
 	    return callback(null, prefixLoc);
-
 	});
     });
-    
 }
-
 
 // Return router
 module.exports = router;
