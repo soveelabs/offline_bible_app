@@ -22,7 +22,7 @@ spec:
         - name: dockerhubkey
       containers:                        # List of containser in this pod
         - name: app                      # Name of the container
-          image: sovee/bible-api:1.0.8          # Image to use for the container
+          image: sovee/bible-api:1.0.9          # Image to use for the container
           command:                       # Command to execute when starting the container (Not needed if you have a CMD in your Dockerfile instead)
             - npm
             - start
