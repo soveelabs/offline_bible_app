@@ -15,7 +15,7 @@ var Book =  require('../models/book');
 var Chapter =  require('../models/chapter');
 var Verse = require('../models/verse');
 
-// Export xls
+// Export file
 router.route('/bibles/:bible_id/books/:book_id/chapters/:chapter_id/:trglang/:filename').get(function(req, res){
     filename = req.params.filename.toLowerCase();
     bibleId = req.params.bible_id;
@@ -24,11 +24,24 @@ router.route('/bibles/:bible_id/books/:book_id/chapters/:chapter_id/:trglang/:fi
     var sourceLanguage;
     targetLanguage = req.params.trglang.toLowerCase();
     resJson = {};
-    var resFlag = 0;
+    var resFlag = 0, checkedOutFlag = 0, resUrl = '';
     var verseStr = []; var bookMetakeys = []; 
     var iterateChapters = function (chapt, callback) {
 	var tmpRes = {};
 	if (chapterId == chapt.chapter) {
+	    if (chapt.checkout == '') {
+		Chapter.findById(chapt._id)
+		    .exec(function(err, c) {
+			if (!err) {
+	      		    c.checkout = req.userId;
+			    c.save(function(err) {
+				if (err) { callback('Unable to save to Database.'); }
+			    });
+			}
+		    });
+	    } else {
+		return callback(null, 'checkedout');
+	    }
             Verse.find({chapterId:chapt._id}).exec(function (verseErr, verseDocs) {
 		verses = _.pluck(verseDocs, 'verse');
 		verses.forEach(function(oneVerse){
@@ -50,7 +63,7 @@ router.route('/bibles/:bible_id/books/:book_id/chapters/:chapter_id/:trglang/:fi
 	}
     };
     
-    if(filename.split('.')[1] == 'xlsx') {
+    if(filename.split('.')[1] == 'xlsx') { //For export as xlsx.
 	Bible
 	    .findOne({'bibleId':bibleId})
 	    .populate('books')
@@ -86,19 +99,26 @@ router.route('/bibles/:bible_id/books/:book_id/chapters/:chapter_id/:trglang/:fi
 					});
 				    } else {
 					for(var i = 0; i < results.length; i++) {
-
-					    if (results[i] != 'false') {
+					    if (results[i] != 'false' && results[i] != 'checkedout') {
+						resUrl = results[i];
 						resFlag = 1;
-						res.status(200).json({url : results[i]});
+					    }
+					    if (results[i] == 'checkedout') {
+						checkedOutFlag = 1;
 					    }
 					}
-					if (resFlag == 0) {
+					if (resFlag == 0 && checkedOutFlag == 0) {
 					    res.status(404).json({
-						message: "Could not found the chapter. " + err
+						message: "Could not find chapter."
 					    });
+					} else if (checkedOutFlag == 1) {
+					    res.status(403).json({
+						message: "This chapter is already checked-out."
+					    });
+					} else if (resFlag == 1) {
+					    res.status(200).json({url : resUrl});
 					}
 				    }
-
 				});
 			    });
 		    }

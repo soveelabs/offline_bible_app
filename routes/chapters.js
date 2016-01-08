@@ -144,6 +144,7 @@ router.route('/bibles/:bible_id/books/:book_id/chapters').get(function(req, res)
     	chaptJson['translations'] = [];
 	Chapter.populate(num, [{path:'translations.bibleId'}], function(chaptError, value){
 	    chaptJson['chapter'] = value.chapter;
+	    chaptJson['checkedOutBy'] = value.checkout;
 	    //chaptJson['translations'] = [];
 	    value.translations.forEach(function(transUnit){
 		transJson = {};
