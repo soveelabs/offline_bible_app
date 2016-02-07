@@ -4,8 +4,10 @@
   "description": "",
   "main": "index.js",
   "scripts": {
+    "build": "npm install -g gulp yo && npm install -g generator-express && npm install -g nodemon",
     "test": "mocha",
-    "start": "node bin/www.js"
+    "start": "node bin/www.js",
+    "postinstall": "npm run build"
   },
   "author": "",
   "license": "ISC",
@@ -25,7 +27,6 @@
   },
   "devDependencies": {
     "chai": "^3.4.0",
-    "config": "^1.16.0",
     "mocha": "^2.3.3",
     "nock": "^2.15.0",
     "sinon": "^1.17.2",
