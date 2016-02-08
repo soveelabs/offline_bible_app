@@ -1,0 +1,30 @@
+{
+  "name": "offline_bible_app",
+  "scripts": {
+  },
+  "env": {
+    "DB_DATABASE": {
+      "required": true
+    },
+    "DB_HOST": {
+      "required": true
+    },
+    "DB_PASSWORD": {
+      "required": true
+    },
+    "DB_REPLICA_SET": {
+      "required": true
+    },
+    "DB_USERNAME": {
+      "required": true
+    }
+  },
+  "addons": [
+    "mongolab"
+  ],
+  "buildpacks": [
+    {
+      "url": "urn:buildpack:heroku/nodejs"
+    }
+  ]
+}
