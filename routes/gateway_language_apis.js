@@ -15,41 +15,49 @@ var Verse = require('../models/verse');
 
 // CREATE Gateway Language Bibles
 router.route('/bibles').post(function(req, res){
+  var reqObj = req.body;
+  var bibleObj = Object.keys(reqObj);
+  var parsedObj = JSON.parse(bibleObj);
+  console.log(parsedObj);
+  console.log("######");
+  //console.log(parsedObj.bibleId);
 
   Bible.findOne({
     bibleId: {
-      $regex: new RegExp(req.body.bibleId, "i")
+      $regex: new RegExp(parsedObj.bibleId, "i")
     }
   }, function(err, bible) { // Using RegEx - search is case insensitive
     if (!err && !bible) {
-      
+
       var newBible = new Bible();
       var count = 1;
 
-      newBible.bibleId = req.body.bibleId;
-      newBible.version = req.body.version;
-      newBible.langCode = req.body.langCode;
-      newBible.bibleUrl = req.body.bibleUrl;
+      newBible.bibleId = parsedObj.bibleId;
+      newBible.version = parsedObj.version;
+      newBible.langCode = parsedObj.langCode;
+      newBible.bibleUrl = parsedObj.bibleUrl;
 
+      console.log(process.env.PARALLEL_HOST + "/json?usfx=" +  parsedObj.bibleUrl);
+      console.log(process.env.AUTH_TOKEN)
       request({
-          url: process.env.PARALLEL_HOST + "/usx?url=" + req.body.bibleUrl, //URL to hit
+          url: process.env.PARALLEL_HOST + "/json?usfx=" +  parsedObj.bibleUrl, //URL to hit
           headers: { //We can define headers too
               'Authorization': "Token token=" + process.env.AUTH_TOKEN
           }
       }, function (error, response, body) {
-        
-        if (!error && response.statusCode == 200) {
-           
-            var resJson = JSON.parse(body);
 
+        console.log("$$$$$$$$$$$$")
+        console.log(response)
+        if (!error && response.statusCode == 200) {
+            var resJson = JSON.parse(body);
             resJson.forEach(function(books){
-              
-                var bookMetadata = []; 
+
+                var bookMetadata = [];
                 var info = _.pluck(books, 'info');
                 info.forEach(function(bookInfo){
-                  
+
                   bookInfo.forEach(function(oneBookInfo){
-                   
+
                       var tempTxt = {};
                       tempTxt[oneBookInfo.text] = oneBookInfo.type;
                       bookMetadata.push(tempTxt);
@@ -65,13 +73,13 @@ router.route('/bibles').post(function(req, res){
                 verses.forEach(function(versee) {
 
                     _.forEach(versee, function(versesChapter, chapterKey) {
-                        
+
                         var newChapter = Chapter();
                         newChapter.chapter = chapterKey;
                         newChapter.bookId = req.body.bookId;
                         newChapter.save();
                         newChapIds.push(newChapter._id);
-                        
+
 
                         _.forEach(versesChapter, function(verseValue, verseKey){
                             var newVerse = Verse();
@@ -99,14 +107,14 @@ router.route('/bibles').post(function(req, res){
                 newBook.bookId = tempBookId.toLowerCase();
                 //newBook.url = req.body.url;
                 newBook.chapters = newChapIds;
-                
+
                 //bookMetadata = bookMetadata.substring(0, bookMetadata.length - 1);
 
                 //console.log(bookMetadata);
                 newBook.metadata = JSON.stringify(bookMetadata);
-             
+
                 newBible.books.push(newBook._id); //Saving ref of books to Bible model.
-          
+
                 newBook.save()
             });
 
@@ -114,7 +122,7 @@ router.route('/bibles').post(function(req, res){
                 newBible.save(function(err) {
                   if (!err) {
                     res.status(201).json({
-                      message: "Bible created with bibleId: " + req.body.bibleId
+                      message: "Bible created with bibleId: " + parsedObj.bibleId
                     });
                   } else {
                     res.status(500).json({
@@ -123,7 +131,7 @@ router.route('/bibles').post(function(req, res){
                   }
                 });
               }count++;
-            
+
         } else if(error) {
 //          console.log(error);
           return res.send(error);
@@ -160,7 +168,7 @@ router.route('/bibles').get(function(req, res) {
       resArry['version'] = element.version;
       resArry['langCode'] = element.langCode;
       resArry['bibleUrl'] = element.bibleUrl;
-      
+
       gatewayList.push(resArry);
     });
     res.status(200).json(gatewayList);
@@ -171,7 +179,7 @@ router.route('/bibles').get(function(req, res) {
 
 router.route('/bibles/:bible_id').put( function(req, res) {
   var bibleId = req.params.bible_id;
-    
+
   Bible.findOne({'bibleId':bibleId}, function(err, bible) {
     if (!err && bible) {
       bible.version = req.body.version;
