@@ -31,7 +31,7 @@ spec:
               containerPort: 3000        # Port your app will listen on
           env:                           # List of environment variables to set in the container
             - name: AUTH_HOST
-              value: "http://auth" 
+              value: "http://auth"
             - name: AUTH_TOKEN
               value: '30c1bd57ea8f93bfc40f82f1ce80aedd771e7ca7'
             - name: DB_HOST
@@ -45,4 +45,4 @@ spec:
             - name: DB_REPLICA_SET
               value: 'set-5630eec9e66bf67594001734'
             - name: PARALLEL_HOST
-              value: 'http://parallel-api'
+              value: 'http://127.0.0.1:4000'

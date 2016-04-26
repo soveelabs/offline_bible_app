@@ -15,16 +15,10 @@ var Verse = require('../models/verse');
 
 // CREATE Gateway Language Bibles
 router.route('/bibles').post(function(req, res){
-  var reqObj = req.body;
-  var bibleObj = Object.keys(reqObj);
-  var parsedObj = JSON.parse(bibleObj);
-  console.log(parsedObj);
-  console.log("######");
-  //console.log(parsedObj.bibleId);
 
   Bible.findOne({
     bibleId: {
-      $regex: new RegExp(parsedObj.bibleId, "i")
+      $regex: new RegExp(req.body.bibleId, "i")
     }
   }, function(err, bible) { // Using RegEx - search is case insensitive
     if (!err && !bible) {
@@ -32,22 +26,23 @@ router.route('/bibles').post(function(req, res){
       var newBible = new Bible();
       var count = 1;
 
-      newBible.bibleId = parsedObj.bibleId;
-      newBible.version = parsedObj.version;
-      newBible.langCode = parsedObj.langCode;
-      newBible.bibleUrl = parsedObj.bibleUrl;
+      newBible.bibleId = req.body.bibleId;
+      newBible.version = req.body.version;
+      newBible.langCode = req.body.langCode;
+      newBible.bibleUrl = req.body.bibleUrl;
 
-      console.log(process.env.PARALLEL_HOST + "/json?usfx=" +  parsedObj.bibleUrl);
-      console.log(process.env.AUTH_TOKEN)
+      console.log(process.env.PARALLEL_HOST + "/json?usfx=" +  req.body.bibleUrl);
+      console.log(newBible);
+
       request({
-          url: process.env.PARALLEL_HOST + "/json?usfx=" +  parsedObj.bibleUrl, //URL to hit
-          headers: { //We can define headers too
-              'Authorization': "Token token=" + process.env.AUTH_TOKEN
-          }
+          url: process.env.PARALLEL_HOST + "/json?usfx=" +  req.body.bibleUrl //URL to hit
       }, function (error, response, body) {
 
         console.log("$$$$$$$$$$$$")
+        console.log(error)
+        console.log("$$$$$$$$$$$$")
         console.log(response)
+
         if (!error && response.statusCode == 200) {
             var resJson = JSON.parse(body);
             resJson.forEach(function(books){
@@ -64,7 +59,6 @@ router.route('/bibles').post(function(req, res){
                   });
                 });
 
-
                 keys = Object.keys(books);
                 var verses = _.pluck(books, 'chapters');
                 var i = 0;
@@ -79,7 +73,6 @@ router.route('/bibles').post(function(req, res){
                         newChapter.bookId = req.body.bookId;
                         newChapter.save();
                         newChapIds.push(newChapter._id);
-
 
                         _.forEach(versesChapter, function(verseValue, verseKey){
                             var newVerse = Verse();
@@ -133,10 +126,10 @@ router.route('/bibles').post(function(req, res){
               }count++;
 
         } else if(error) {
-//          console.log(error);
+         //console.log(error);
           return res.send(error);
         }
-//          console.log("i am here bottom");
+         console.log("i am here bottom");
       });
 
    } else if (!err) {
@@ -207,7 +200,6 @@ router.route('/bibles/:bible_id').put( function(req, res) {
     }
   });
 });
-
 
 // Return router
 module.exports = router;
