@@ -7,9 +7,9 @@ app:
     - ':3000'
   environment:
     AUTH_HOST: https://staging-auth.sovee.com
-    AUTH_TOKEN: fe56002db2632cd72daff4ac496aac1cfec7577b 
-    DB_HOST: db 
-    PARALLEL_HOST: https://staging-parallel-api.sovee.com
+    AUTH_TOKEN: fe56002db2632cd72daff4ac496aac1cfec7577b
+    DB_HOST: db
+    PARALLEL_HOST: https://usfx.herokuapp.com
     ALCHEMY_HOST: https://staging-alchemy.sovee.com
     ALCHEMY_AUTH_TOKEN: 664d6eaa2015f05a81210aaa398c292d6f4bd641
     ALCHEMY_CUSTOMER: Sovee

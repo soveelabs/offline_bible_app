@@ -22,7 +22,7 @@ router.route('/bibles').post(function(req, res){
     }
   }, function(err, bible) { // Using RegEx - search is case insensitive
     if (!err && !bible) {
-      
+
       var newBible = new Bible();
       var count = 1;
 
@@ -32,30 +32,28 @@ router.route('/bibles').post(function(req, res){
       newBible.bibleUrl = req.body.bibleUrl;
 
       request({
-          url: process.env.PARALLEL_HOST + "/usx?url=" + req.body.bibleUrl, //URL to hit
-          headers: { //We can define headers too
-              'Authorization': "Token token=" + process.env.AUTH_TOKEN
-          }
+          url: process.env.PARALLEL_HOST + "/json?usfx=" +  req.body.bibleUrl //URL to hit
       }, function (error, response, body) {
-        
-        if (!error && response.statusCode == 200) {
-           
-            var resJson = JSON.parse(body);
 
-            resJson.forEach(function(books){
-              
-                var bookMetadata = []; 
-                var info = _.pluck(books, 'info');
+        if (!error && response.statusCode == 200) {
+
+            var resJson = JSON.parse(body);
+            // resJson.forEach(function(book){
+            resJson.books.forEach(function(book){
+
+                var bookMetadata = [];
+                var info = _.pluck(resJson.books, 'info');
+                console.log(info);
                 info.forEach(function(bookInfo){
-                  
+
+
                   bookInfo.forEach(function(oneBookInfo){
-                   
+
                       var tempTxt = {};
                       tempTxt[oneBookInfo.text] = oneBookInfo.type;
                       bookMetadata.push(tempTxt);
                   });
                 });
-
 
                 keys = Object.keys(books);
                 var verses = _.pluck(books, 'chapters');
@@ -65,13 +63,12 @@ router.route('/bibles').post(function(req, res){
                 verses.forEach(function(versee) {
 
                     _.forEach(versee, function(versesChapter, chapterKey) {
-                        
+
                         var newChapter = Chapter();
                         newChapter.chapter = chapterKey;
                         newChapter.bookId = req.body.bookId;
                         newChapter.save();
                         newChapIds.push(newChapter._id);
-                        
 
                         _.forEach(versesChapter, function(verseValue, verseKey){
                             var newVerse = Verse();
@@ -90,8 +87,8 @@ router.route('/bibles').post(function(req, res){
 
                 });
 
-                //bookCreate(keys[0].trim());
-//                console.log(newChapIds);
+                bookCreate(keys[0].trim());
+               console.log(newChapIds);
                 var newBook = new Book();
                 newBook.bookName = keys[0].trim();
                 newBook.bibleId = req.body.bibleId;
@@ -99,14 +96,14 @@ router.route('/bibles').post(function(req, res){
                 newBook.bookId = tempBookId.toLowerCase();
                 //newBook.url = req.body.url;
                 newBook.chapters = newChapIds;
-                
+
                 //bookMetadata = bookMetadata.substring(0, bookMetadata.length - 1);
 
                 //console.log(bookMetadata);
                 newBook.metadata = JSON.stringify(bookMetadata);
-             
+
                 newBible.books.push(newBook._id); //Saving ref of books to Bible model.
-          
+
                 newBook.save()
             });
 
@@ -123,12 +120,11 @@ router.route('/bibles').post(function(req, res){
                   }
                 });
               }count++;
-            
+
         } else if(error) {
-//          console.log(error);
-          return res.send(error);
+         return res.send(error);
         }
-//          console.log("i am here bottom");
+         console.log("i am here bottom");
       });
 
    } else if (!err) {
@@ -160,7 +156,7 @@ router.route('/bibles').get(function(req, res) {
       resArry['version'] = element.version;
       resArry['langCode'] = element.langCode;
       resArry['bibleUrl'] = element.bibleUrl;
-      
+
       gatewayList.push(resArry);
     });
     res.status(200).json(gatewayList);
@@ -171,7 +167,7 @@ router.route('/bibles').get(function(req, res) {
 
 router.route('/bibles/:bible_id').put( function(req, res) {
   var bibleId = req.params.bible_id;
-    
+
   Bible.findOne({'bibleId':bibleId}, function(err, bible) {
     if (!err && bible) {
       bible.version = req.body.version;
@@ -199,7 +195,6 @@ router.route('/bibles/:bible_id').put( function(req, res) {
     }
   });
 });
-
 
 // Return router
 module.exports = router;

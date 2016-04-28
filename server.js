@@ -15,8 +15,8 @@ var app = express();
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(bodyParser.json());
 
-app.use(auth.authenticate);
-app.use(auth.getUid);
+//app.use(auth.authenticate);
+//app.use(auth.getUid);
 
 
 // Routes
