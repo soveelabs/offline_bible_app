@@ -45,4 +45,4 @@ spec:
             - name: DB_REPLICA_SET
               value: 'set-5630eec9e66bf67594001734'
             - name: PARALLEL_HOST
-              value: 'http://127.0.0.1:4000'
+              value: 'https://usfx.herokuapp.com'

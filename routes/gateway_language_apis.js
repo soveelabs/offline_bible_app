@@ -31,25 +31,21 @@ router.route('/bibles').post(function(req, res){
       newBible.langCode = req.body.langCode;
       newBible.bibleUrl = req.body.bibleUrl;
 
-      console.log(process.env.PARALLEL_HOST + "/json?usfx=" +  req.body.bibleUrl);
-      console.log(newBible);
-
       request({
           url: process.env.PARALLEL_HOST + "/json?usfx=" +  req.body.bibleUrl //URL to hit
       }, function (error, response, body) {
 
-        console.log("$$$$$$$$$$$$")
-        console.log(error)
-        console.log("$$$$$$$$$$$$")
-        console.log(response)
-
         if (!error && response.statusCode == 200) {
+
             var resJson = JSON.parse(body);
-            resJson.forEach(function(books){
+            // resJson.forEach(function(book){
+            resJson.books.forEach(function(book){
 
                 var bookMetadata = [];
-                var info = _.pluck(books, 'info');
+                var info = _.pluck(resJson.books, 'info');
+                console.log(info);
                 info.forEach(function(bookInfo){
+
 
                   bookInfo.forEach(function(oneBookInfo){
 
@@ -91,8 +87,8 @@ router.route('/bibles').post(function(req, res){
 
                 });
 
-                //bookCreate(keys[0].trim());
-//                console.log(newChapIds);
+                bookCreate(keys[0].trim());
+               console.log(newChapIds);
                 var newBook = new Book();
                 newBook.bookName = keys[0].trim();
                 newBook.bibleId = req.body.bibleId;
@@ -115,7 +111,7 @@ router.route('/bibles').post(function(req, res){
                 newBible.save(function(err) {
                   if (!err) {
                     res.status(201).json({
-                      message: "Bible created with bibleId: " + parsedObj.bibleId
+                      message: "Bible created with bibleId: " + req.body.bibleId
                     });
                   } else {
                     res.status(500).json({
@@ -126,8 +122,7 @@ router.route('/bibles').post(function(req, res){
               }count++;
 
         } else if(error) {
-         //console.log(error);
-          return res.send(error);
+         return res.send(error);
         }
          console.log("i am here bottom");
       });
