@@ -23,6 +23,7 @@ router.route('/bibles').post(function(req, res){
   }, function(err, bible) { // Using RegEx - search is case insensitive
     if (!err && !bible) {
 
+      // Bible model
       var newBible = new Bible();
       var count = 1;
 
@@ -34,48 +35,56 @@ router.route('/bibles').post(function(req, res){
       request({
           url: process.env.PARALLEL_HOST + "/json?usfx=" +  req.body.bibleUrl //URL to hit
       }, function (error, response, body) {
+        // console.log(res)
 
         if (!error && response.statusCode == 200) {
 
+            // data for Book
+
             var resJson = JSON.parse(body);
             // resJson.forEach(function(book){
-            resJson.books.forEach(function(book){
+            resJson.books.forEach(function(book, index, array){
 
-                var bookMetadata = [];
-                var info = _.pluck(resJson.books, 'info');
-                console.log(info);
-                info.forEach(function(bookInfo){
+              // var jbooks = resJson.books
+                // console.log(resJson.books[0].chapters)
 
+                // var bookMetadata = [];
+                // var info = _.pluck(books, 'info');
+                // info.forEach(function(bookInfo){
 
-                  bookInfo.forEach(function(oneBookInfo){
+                //   bookInfo.forEach(function(oneBookInfo){
 
-                      var tempTxt = {};
-                      tempTxt[oneBookInfo.text] = oneBookInfo.type;
-                      bookMetadata.push(tempTxt);
-                  });
-                });
+                //       var tempTxt = {};
+                //       tempTxt[oneBookInfo.text] = oneBookInfo.type;
+                //       bookMetadata.push(tempTxt);
+                //   });
+                // });
 
-                keys = Object.keys(books);
-                var verses = _.pluck(books, 'chapters');
+                keys = Object.keys(book);
+                  // console.log(keys)
+                var verses = _.pluck(resJson.books, 'chapters');
+                  // console.log(verses)
                 var i = 0;
                 var newChapIds = [];
 
                 verses.forEach(function(versee) {
+                  console.log(versee)
 
                     _.forEach(versee, function(versesChapter, chapterKey) {
 
                         var newChapter = Chapter();
                         newChapter.chapter = chapterKey;
-                        newChapter.bookId = req.body.bookId;
+                        newChapter.bookId = resJson.books[index].name;
                         newChapter.save();
                         newChapIds.push(newChapter._id);
+                        // console.log(newChapter.bookId);
 
                         _.forEach(versesChapter, function(verseValue, verseKey){
                             var newVerse = Verse();
                             if( verseKey != 'footnotes') {
                                 newVerse.verseNumber = verseKey;
                                 newVerse.verse = verseValue;
-                                newVerse.bookId = req.body.bookId;
+                                newVerse.bookId = resJson.books[index].name;
                                 newVerse.chapterId = newChapter._id;
                                 newVerse.save();
 
@@ -87,20 +96,22 @@ router.route('/bibles').post(function(req, res){
 
                 });
 
-                bookCreate(keys[0].trim());
-               console.log(newChapIds);
+                // bookCreate(keys[0].trim());
+               // console.log(newChapIds);
                 var newBook = new Book();
-                newBook.bookName = keys[0].trim();
+                 newBook.bookName = resJson.books[index].toc[1].text;
+                   // console.log(resJson.books[index].toc[1].text);
                 newBook.bibleId = req.body.bibleId;
-		tempBookId = keys[0].trim().replace(/\s+/g, '');
-                newBook.bookId = tempBookId.toLowerCase();
+		// tempBookId = keys[0].trim().replace(/\s+/g, '');
+                // newBook.bookId = tempBookId.toLowerCase();
+                newBook.bookId = resJson.books[index].name;
                 //newBook.url = req.body.url;
                 newBook.chapters = newChapIds;
 
                 //bookMetadata = bookMetadata.substring(0, bookMetadata.length - 1);
 
                 //console.log(bookMetadata);
-                newBook.metadata = JSON.stringify(bookMetadata);
+                // newBook.metadata = JSON.stringify(bookMetadata);
 
                 newBible.books.push(newBook._id); //Saving ref of books to Bible model.
 
