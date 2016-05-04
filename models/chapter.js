@@ -10,7 +10,7 @@ var chapterSchema = new mongoose.Schema({
     checkout: String,
     translations: [{
 	//The translated Bible ID
-    	bibleId: {type: mongoose.Schema.Types.ObjectId, ref: 'TranslatedBible'}, 
+    	bibleId: {type: mongoose.Schema.Types.ObjectId, ref: 'TranslatedBible'},
 
 	//The URL of the Excel file.
     	url: String
