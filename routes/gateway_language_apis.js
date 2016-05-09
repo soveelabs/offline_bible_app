@@ -67,33 +67,38 @@ router.route('/bibles').post(function(req, res){
 
                 var i = 0;
                 var newChapIds = [];
+                var newVerseIds = [];
 
                 verses.forEach(function(versee) {
+
+                  _.forEach(versee, function(verseValue){
+
+                    // var verseKey =
+                          // console.log(verseKey)
+                          // verseValue.forEach(function(){
+
+                            var newVerse = Verse();
+                            // if( verseKey != 'footnotes') {
+                                // newVerse.verseNumber = verseKey;
+                                newVerse.verse = verseValue;
+                                newVerse.bookId = resJson.books[index].name;
+                                // newVerse.chapterId = newChapter._id;
+                                newVerse.save();
+                                newVerseIds.push(newVerse._id);
+                            // }
+
+                          // });
+                        });
 
                   var chapterKey = Object.keys(verses[0]);
 
                     // _.forEach(versee, function(versesChapter, chapterKey) {
-
                         var newChapter = Chapter();
                         newChapter.chapter = chapterKey;
                         newChapter.bookId = resJson.books[index].name;
+                        newChapter.verses= newVerseIds;
                         newChapter.save();
                         newChapIds.push(newChapter._id);
-
-                        // _.forEach(verses, function(verseValue, verseKey){
-                          verses.forEach(function(verseValue){
-                            console.log(verseValue)
-                          })
-
-                            var newVerse = Verse();
-                            // if( verseKey != 'footnotes') {
-                                newVerse.verseNumber = verseKey;
-                                newVerse.verse = verseValue;
-                                newVerse.bookId = resJson.books[index].name;
-                                newVerse.chapterId = newChapter._id;
-                                newVerse.save();
-                            // }
-                        // });
                     // });
                 });
 

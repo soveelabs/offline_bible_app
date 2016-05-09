@@ -14,7 +14,8 @@ var chapterSchema = new mongoose.Schema({
 
 	//The URL of the Excel file.
     	url: String
-    }]
+    }],
+    verses: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Verse' }]
 });
 
 
