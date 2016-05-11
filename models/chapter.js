@@ -1,11 +1,13 @@
 // Dependencies
 var mongoose = require('mongoose');
 var TranslatedBible = require('./translated_bible.js');
+var Verse = require('./verse.js');
 
 // Schema
 var chapterSchema = new mongoose.Schema({
     bookId: String,
     chapter: String,
+    bibleId: String,
     url: String,
     checkout: String,
     translations: [{

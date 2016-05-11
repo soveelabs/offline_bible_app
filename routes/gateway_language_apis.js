@@ -42,84 +42,58 @@ router.route('/bibles').post(function(req, res){
             // data for Book
 
             var resJson = JSON.parse(body);
+            var bookData = resJson.books;
 
-            // resJson.forEach(function(book){
-            resJson.books.forEach(function(book, index, array){
+            bookData.forEach(function(book, index, array){
 
-              // var jbooks = resJson.books
-
-                // var bookMetadata = [];
-                // var info = _.pluck(books, 'info');
-                // info.forEach(function(bookInfo){
-
-                //   bookInfo.forEach(function(oneBookInfo){
-                //       var tempTxt = {};
-                //       tempTxt[oneBookInfo.text] = oneBookInfo.type;
-                //       bookMetadata.push(tempTxt);
-                //   });
-                // });
-
-                keys = Object.keys(book);
-                // var verses = _.pluck(resJson.books, 'chapters');
-
-                var verses = resJson.books[index].chapters;
-                // console.log(verses)
+                var chapData = bookData[index].chapters;
+                // console.log(chapData)
 
                 var i = 0;
                 var newChapIds = [];
                 var newVerseIds = [];
 
-                verses.forEach(function(versee) {
+                chapData.forEach(function(verses ) {
+                  console.log(verses[0])
+                })
 
-                  _.forEach(versee, function(verseValue){
+                  // var chapterKey = Object.keys(chapData[0]);
 
-                    // var verseKey =
-                          // console.log(verseKey)
-                          // verseValue.forEach(function(){
 
-                            var newVerse = Verse();
-                            // if( verseKey != 'footnotes') {
-                                // newVerse.verseNumber = verseKey;
-                                newVerse.verse = verseValue;
-                                newVerse.bookId = resJson.books[index].name;
-                                // newVerse.chapterId = newChapter._id;
-                                newVerse.save();
-                                newVerseIds.push(newVerse._id);
-                            // }
+                   _.forEach(Object.keys(chapData[0]), function(chap){
 
-                          // });
-                        });
+                    var newChapter = Chapter();
+                    newChapter.chapter = chap;
+                    newChapter.bookId = bookData[index].name;
+                    // newChapter.verses= newVerseIds;
+                    newChapter.bibleId = req.body.bibleId;
+                    newChapter.save();
+                    newChapIds.push(newChapter._id);
 
-                  var chapterKey = Object.keys(verses[0]);
+                   })
 
-                    // _.forEach(versee, function(versesChapter, chapterKey) {
-                        var newChapter = Chapter();
-                        newChapter.chapter = chapterKey;
-                        newChapter.bookId = resJson.books[index].name;
-                        newChapter.verses= newVerseIds;
-                        newChapter.save();
-                        newChapIds.push(newChapter._id);
-                    // });
-                });
 
-                // bookCreate(keys[0].trim());
+                  //  _.forEach(versee, function(verseValue){
+                  //   console.log(verseValue[0])
+
+                  // // versee.forEach(function(verseTree){
+                  //   // var newVerse = Verse();
+                  //   // newVerse.verseNumber = resJson.books[index].toc[1].text;
+                  //   // newVerse.verse = req.body.bibleId;
+                  //   // newVerse.chapterId = resJson.books[index].name;
+                  //   // newVerse.bookId = resJson.books[index].name;
+                  //   // newVerseIds.push(newVerse._id);
+                  //   // newVerse.save()
+                  // });
+
+                // });
 
                 var newBook = new Book();
-                newBook.bookName = resJson.books[index].toc[1].text;
+                newBook.bookName = bookData[index].toc[1].text;
                 newBook.bibleId = req.body.bibleId;
-		// tempBookId = keys[0].trim().replace(/\s+/g, '');
-                // newBook.bookId = tempBookId.toLowerCase();
-                newBook.bookId = resJson.books[index].name;
-                //newBook.url = req.body.url;
+                newBook.bookId = bookData[index].name;
                 newBook.chapters = newChapIds;
-
-                //bookMetadata = bookMetadata.substring(0, bookMetadata.length - 1);
-
-                //console.log(bookMetadata);
-                // newBook.metadata = JSON.stringify(bookMetadata);
-
                 newBible.books.push(newBook._id); //Saving ref of books to Bible model.
-
                 newBook.save()
             });
 
