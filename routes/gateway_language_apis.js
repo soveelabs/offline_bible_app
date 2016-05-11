@@ -39,11 +39,13 @@ router.route('/bibles').post(function(req, res){
         if (!error && response.statusCode == 200) {
 
             // data for Book
-
             var resJson = JSON.parse(body);
             var bookData = resJson.books;
 
             bookData.forEach(function(book, index, array){
+              // console.log(book)
+
+              var newChapIds = [];
 
               // Book Model
               var newBook = new Book();
@@ -56,41 +58,46 @@ router.route('/bibles').post(function(req, res){
 
                 var chapData = bookData[index].chapters;
 
-                var i = 0;
-                var newChapIds = [];
+                // var i = 0;
 
-                // _.forEach(Object.keys(chapData[0]), function(chap){  // save each chapter
-                chapData.forEach(function(verses) {
+                var newVerseIds = [];
+
+
+                chapData.forEach(function(verses) { // save each chapter
+
+                  // var chapterKey = Object.keys(chapData[0])
+                  Object.keys(chapData[0]).forEach(function(key) {
+                  // console.log(key);
+                  // console.log("########")
 
                   // Chapter model
-                  var newChapter = Chapter();
-                  newChapter.chapterId = chap;
-                  newChapter.bookId = bookData[index].name;
-                  newChapter.verses= newVerseIds;
-                  newChapter.bibleId = req.body.bibleId;
-                  newChapter.save();
-                  newChapIds.push(newChapter._id);
+                    var newChapter = Chapter();
+                    newChapter.chapterId = key;
+                    newChapter.bookId = bookData[index].name;
+                    newChapter.verses= newVerseIds;
+                    newChapter.bibleId = req.body.bibleId;
+                    newChapter.save();
+                    newChapIds.push(newChapter._id);
 
-                // });
+                  // });
+                  });
 
-                  var newVerseIds = [];
 
+                      _.forEach(verses, function(versee){ // save each verse
+                        for(var i in versee){
 
-                    _.forEach(verses, function(versee){ // save each verse
-                      for(var i in versee){
-
-                        // Verse model
-                        var newVerse = Verse();
-                        newVerse.verseNumber = i;
-                        newVerse.verse = versee[i];
-                        newVerse.chapterId = chap;
-                        newVerse.bookId = resJson.books[index].name;
-                        newVerse.bibleId = req.body.bibleId;
-                        newVerse.save()
-                        newVerseIds.push(newVerse._id);
-                      }
-                    })
-                  })
+                          // Verse model
+                          var newVerse = Verse();
+                          newVerse.verseNumber = i;
+                          newVerse.verse = versee[i];
+                          // newVerse.chapterId = key;
+                          newVerse.bookId = resJson.books[index].name;
+                          newVerse.bibleId = req.body.bibleId;
+                          newVerse.save()
+                          newVerseIds.push(newVerse._id);
+                        }
+                      })
+                })
 
             });
 
@@ -114,7 +121,7 @@ router.route('/bibles').post(function(req, res){
          console.log("i am here bottom");
       });
 
-   } else if (!err) {
+    } else if (!err) {
 
       // User is trying to create a Bible with a BibleId that already exists.
       res.status(403).json({
