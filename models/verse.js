@@ -6,7 +6,8 @@ var verseSchema = new mongoose.Schema({
     verseNumber: String,
     verse: String,
     chapterId: String,
-    bookId: String
+    bookId: String,
+    bibleId: String
 });
 
 // Return model

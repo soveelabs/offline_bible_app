@@ -6,7 +6,7 @@ var Verse = require('./verse.js');
 // Schema
 var chapterSchema = new mongoose.Schema({
     bookId: String,
-    chapter: String,
+    chapterId: String,
     bibleId: String,
     url: String,
     checkout: String,
